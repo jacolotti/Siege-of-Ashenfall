@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Siege of Ashenfall v1.5 — Mobile & Desktop</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Siege of Ashenfall v1.7 — Fantasy Towers</title><style>
 *{box-sizing:border-box}body{margin:0;background:#101827;color:#eaf0fa;font-family:Segoe UI,Arial,sans-serif}main{max-width:1100px;margin:20px auto;padding:0 14px}h1{margin:0 0 12px}header,.controls,.stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center}header{justify-content:space-between;margin-bottom:12px}.stats span{background:#25344c;padding:8px 12px;border-radius:8px}button{border:1px solid #627795;background:#253b59;color:white;border-radius:8px;padding:10px 13px;cursor:pointer;font-weight:600}button:hover{background:#37547d}button.active{background:#236b72;border-color:#51dbca}button:disabled{opacity:.45;cursor:default}.layout{display:grid;grid-template-columns:minmax(0,800px) 250px;gap:14px}canvas{display:block;width:100%;height:auto;background:#183c33;border:2px solid #49645b;border-radius:10px;cursor:crosshair}.panel{background:#1c293d;padding:14px;border-radius:10px}.panel h2{margin:0 0 12px;font-size:19px}.panel button{display:block;width:100%;margin:8px 0;text-align:left}.panel p{font-size:13px;line-height:1.5;color:#b8c8dd}.controls{margin:12px 0}#message{min-height:22px;color:#fbd38d}kbd{background:#324258;padding:2px 5px;border-radius:3px}@media(max-width:800px){.layout{grid-template-columns:1fr}.panel{order:2}}
 
 /* v1.5 mobile-first touch layout */
@@ -29,6 +29,7 @@ button{min-height:44px;touch-action:manipulation}canvas{touch-action:manipulatio
  #message{font-size:14px;line-height:1.5;padding-bottom:12px}
 }
 @media(max-width:380px){.panel>button[data-type]{flex-basis:45%}.stats span{font-size:11px}}
+
 /* Ashenfall compact layout v1.6 */
 main{max-width:1360px}
 .layout{display:grid;grid-template-columns:minmax(0,800px) minmax(340px,1fr);align-items:start;gap:14px}
@@ -56,7 +57,8 @@ main{max-width:1360px}
  .battlefield .controls{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:480px){.panel .tower-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.battlefield .controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style></head><body><main><header><h1>⚔️ Siege of Ashenfall</h1><div class="stats"><span>❤️ Lives: <b id="lives">20</b></span><span>💰 Cash: $<b id="cash">300</b></span><span>🌊 Wave: <b id="wave">0</b></span><span>⭐ Score: <b id="score">0</b></span></div></header><div id="mobileHelp">📱 Tap a tower below, then tap grass on the battlefield to build. Tap an existing tower to upgrade or change targeting. Rotate your phone for a larger battlefield.</div><div class="layout"><div class="battlefield"><canvas id="game" width="800" height="560" aria-label="Tower defense battlefield"></canvas><div class="controls"><button id="cavalry" disabled>📯 Cavalry Horn × <b id="horns">0</b></button><button id="start">▶ Start next wave</button><button id="pause">⏸ Pause</button><button id="speed">⏩ Speed: 1×</button><button id="restart">↻ Restart</button><button id="save">💾 Save</button><button id="load">📂 Load</button></div></div><aside class="panel"><h2>Defend the keep</h2><p>Goblin raiders, swift scouts, ironclads, shamans, and a warlord every 10 waves.</p><h2>Build towers</h2><div class="tower-grid"><button data-type="gun" class="active">🏹 Archer Tower — $75</button><button data-type="cannon">🪨 Stone Catapult — $140</button><button data-type="sniper">🎯 Ranger Watchtower — $200</button><button data-type="flame">🔥 Flame Spire — $175</button><button data-type="frost">❄️ Frost Obelisk — $160</button><button data-type="tesla">⚡ Storm Tower — $230</button><button data-type="support">✨ War Banner — $180</button><p>Select a tower, then click anywhere on the grass. Towers cannot overlap the path or another tower.</p><h2>Selected tower</h2><div id="selection">No tower selected.</div><div class="upgrade-grid"><button id="upgrade" disabled>Upgrade</button><button id="specialize" disabled>Specialize (Level 3+)</button><button id="target" disabled>🎯 Target: First</button><button id="sell" disabled>Sell tower</button></div><p>Right-click or press <kbd>Esc</kbd> to cancel placement. Click an existing tower to inspect it. At level 3, unlock its special upgrade. Save between waves. Bosses may drop runes or a rare Cavalry Horn. The horn calls riders for 10 seconds.</p></aside></div><div id="message" role="status">Place towers before starting the first wave.</div></main><script>
+
+</style></head><body><main><header><h1>⚔️ Siege of Ashenfall</h1><div class="stats"><span>❤️ Lives: <b id="lives">20</b></span><span>💰 Cash: $<b id="cash">300</b></span><span>🌊 Wave: <b id="wave">0</b></span><span>⭐ Score: <b id="score">0</b></span></div></header><div id="mobileHelp">📱 Tap a tower below, then tap grass on the battlefield to build. Tap an existing tower to upgrade or change targeting. Rotate your phone for a larger battlefield.</div><div class="layout"><div class="battlefield"><canvas id="game" width="800" height="560" aria-label="Tower defense battlefield"></canvas><div class="controls"><button id="cavalry" disabled>📯 Cavalry Horn × <b id="horns">0</b></button><button id="start">▶ Start next wave</button><button id="pause">⏸ Pause</button><button id="speed">⏩ Speed: 1×</button><button id="restart">↻ Restart</button><button id="save">💾 Save</button><button id="load">📂 Load</button></div></div><aside class="panel"><h2>Defend the keep</h2><p>Goblin raiders, swift scouts, ironclads, shamans, and a warlord every 10 waves.</p><h2>Build towers</h2><div class="tower-grid"><button data-type="gun" class="active">🏹 Archer Tower — $75</button><button data-type="cannon">🪨 Stone Catapult — $140</button><button data-type="sniper">🎯 Ranger Watchtower — $200</button><button data-type="flame">🔥 Flame Spire — $175</button><button data-type="frost">❄️ Frost Obelisk — $160</button><button data-type="tesla">⚡ Storm Tower — $230</button><button data-type="support">✨ War Banner — $180</button></div><p>Select a tower, then click anywhere on the grass. Towers cannot overlap the path or another tower.</p><h2>Selected tower</h2><div id="selection">No tower selected.</div><div class="upgrade-grid"><button id="upgrade" disabled>Upgrade</button><button id="specialize" disabled>Specialize (Level 3+)</button><button id="target" disabled>🎯 Target: First</button><button id="sell" disabled>Sell tower</button></div><p>Right-click or press <kbd>Esc</kbd> to cancel placement. Click an existing tower to inspect it. At level 3, unlock its special upgrade. Save between waves. Bosses may drop runes or a rare Cavalry Horn. The horn calls riders for 10 seconds.</p></aside></div><div id="message" role="status">Place towers before starting the first wave.</div></main><script>
 (()=>{'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');const $=id=>document.getElementById(id);const TILE=40,COLS=20,ROWS=14;
 const path=[[0,6],[1,6],[2,6],[3,6],[3,5],[3,4],[4,4],[5,4],[6,4],[7,4],[7,5],[7,6],[8,6],[9,6],[10,6],[10,5],[10,4],[11,4],[12,4],[13,4],[13,5],[13,6],[13,7],[14,7],[15,7],[16,7],[16,6],[16,5],[17,5],[18,5],[19,5]];
@@ -87,9 +89,58 @@ let remaining=e.speed*(e.berserk?1.7:1)*(e.slowTime>0?.55:1)*dt;while(remaining>
 for(const t of state.towers){t.disabledFor=Math.max(0,(t.disabledFor||0)-dt);t.cool-=dt;if(t.disabledFor>0)continue;const cfg=types[t.type];if(t.type==='support')continue;const boost=state.towers.some(a=>a.type==='support'&&a!==t&&Math.hypot(a.x-t.x,a.y-t.y)<types.support.range)?1.2:1;const candidates=state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-t.x,e.y-t.y)<=cfg.range*boost*(t.special==='Long Range'?1.45:1));const mode=t.mode||'First';candidates.sort((a,b)=>{const pa=a.next*1000-Math.hypot(a.x-waypoints[Math.min(a.next,waypoints.length-1)].x,a.y-waypoints[Math.min(a.next,waypoints.length-1)].y),pb=b.next*1000-Math.hypot(b.x-waypoints[Math.min(b.next,waypoints.length-1)].x,b.y-waypoints[Math.min(b.next,waypoints.length-1)].y);return mode==='Last'?pa-pb:mode==='Strongest'?b.hp-a.hp:mode==='Closest'?Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y):pb-pa});const target=candidates[0];if(target){t.angle=Math.atan2(target.y-t.y,target.x-t.x);if(t.cool<=0){t.cool=cfg.interval/Math.pow(1.18,t.level-1)/(t.special==='Rapid Fire'?2:1);state.shots.push({x:t.x,y:t.y,target,damage:cfg.damage*(1+.65*(t.level-1))*(t.special==='Heavy Damage'?1.85:1)*boost,speed:cfg.projectile,color:cfg.color,splash:cfg.splash||0,burn:cfg.burn||0,slow:cfg.slow||0,chain:cfg.chain||0});burst(t.x+Math.cos(t.angle)*18,t.y+Math.sin(t.angle)*18,cfg.color,2)}}}
 for(const s of state.shots){if(s.dead)continue;if(s.target.dead){s.dead=true;continue}const dx=s.target.x-s.x,dy=s.target.y-s.y,d=Math.hypot(dx,dy),step=s.speed*dt;if(d<=step+6){const hits=s.splash?state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<=s.splash):[s.target];for(const e of hits){hit(e,s.damage);if(s.burn)e.burnTime=Math.max(e.burnTime||0,s.burn);if(s.slow)e.slowTime=Math.max(e.slowTime||0,s.slow)}if(s.chain){const extra=state.enemies.filter(e=>!e.dead&&e!==s.target&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<90).slice(0,s.chain);for(const e of extra){hit(e,s.damage*.55);burst(e.x,e.y,s.color,5)}}burst(s.target.x,s.target.y,s.color,s.splash?15:4);s.dead=true}else{s.x+=dx/d*step;s.y+=dy/d*step}}
 state.enemies=state.enemies.filter(e=>!e.dead);state.shots=state.shots.filter(s=>!s.dead);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0)}
+// Hand-drawn fantasy tower silhouettes, rendered directly on the canvas.
+function drawFantasyTower(t){
+ const time=performance.now()/1000,kind=t.type;
+ ctx.save();ctx.translate(t.x,t.y);
+ const disabled=t.disabledFor>0;
+ // grounding shadow and defensive footprint
+ ctx.fillStyle='rgba(9,14,13,.45)';ctx.beginPath();ctx.ellipse(1,13,21,9,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#514d40';ctx.strokeStyle='#2a2924';ctx.lineWidth=2;
+ ctx.fillRect(-16,-13,32,29);ctx.strokeRect(-16,-13,32,29);
+ ctx.fillStyle='#827964';ctx.fillRect(-13,-10,26,21);
+ // mortar seams
+ ctx.strokeStyle='#524c41';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-12,-2);ctx.lineTo(12,-2);ctx.moveTo(-12,5);ctx.lineTo(12,5);ctx.moveTo(0,-10);ctx.lineTo(0,-2);ctx.moveTo(-6,-2);ctx.lineTo(-6,5);ctx.moveTo(6,5);ctx.lineTo(6,11);ctx.stroke();
+ if(kind==='gun'||kind==='sniper'){
+   const ranger=kind==='sniper';
+   // timber / stone watchtower, with crenellations or roof
+   ctx.fillStyle=ranger?'#9b9c9b':'#795033';ctx.strokeStyle='#322d28';ctx.lineWidth=2;
+   ctx.fillRect(-12,-14,24,27);ctx.strokeRect(-12,-14,24,27);
+   if(ranger){ctx.fillStyle='#b6b1a1';for(let i=-14;i<=8;i+=11)ctx.fillRect(i,-19,7,8);ctx.fillStyle='#46555c';ctx.fillRect(-4,-8,8,13)}
+   else{ctx.fillStyle='#44352e';ctx.beginPath();ctx.moveTo(-18,-12);ctx.lineTo(0,-27);ctx.lineTo(18,-12);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#a56c43';ctx.beginPath();ctx.moveTo(-14,-12);ctx.lineTo(0,-23);ctx.lineTo(14,-12);ctx.closePath();ctx.fill()}
+   // archer's bow rotates with target
+   ctx.save();ctx.rotate(t.angle||0);ctx.strokeStyle='#e8c58c';ctx.lineWidth=2;ctx.beginPath();ctx.arc(5,0,11,-1.15,1.15);ctx.stroke();ctx.strokeStyle='#f5e9cc';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(9,-10);ctx.lineTo(9,10);ctx.stroke();ctx.fillStyle='#5d704c';ctx.beginPath();ctx.arc(1,0,5,0,Math.PI*2);ctx.fill();ctx.restore();
+ }else if(kind==='cannon'){
+   // wooden catapult: wheels, beams, throwing arm and sling
+   ctx.fillStyle='#6c4229';ctx.fillRect(-16,-11,32,22);ctx.fillStyle='#bd8a50';ctx.fillRect(-13,-8,26,4);ctx.fillRect(-13,5,26,4);
+   for(const x of [-12,12]){ctx.fillStyle='#392c23';ctx.beginPath();ctx.arc(x,11,6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#bc9565';ctx.lineWidth=2;ctx.stroke()}
+   ctx.save();ctx.rotate(t.angle||0);ctx.strokeStyle='#d2a46c';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(16,-6);ctx.stroke();ctx.fillStyle='#544b43';ctx.beginPath();ctx.arc(18,-7,6,0,Math.PI*2);ctx.fill();ctx.restore();
+ }else if(kind==='flame'){
+   ctx.fillStyle='#4d4c50';ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#aaa39a';ctx.lineWidth=4;ctx.stroke();
+   const f=Math.sin(time*9+t.x)*3;ctx.fillStyle='#f06526';ctx.beginPath();ctx.moveTo(-9,7);ctx.quadraticCurveTo(-13,-5,1,-19+f);ctx.quadraticCurveTo(15,-5,9,7);ctx.closePath();ctx.fill();ctx.fillStyle='#ffd36a';ctx.beginPath();ctx.moveTo(-4,7);ctx.quadraticCurveTo(-5,-3,2,-12+f);ctx.quadraticCurveTo(9,1,5,7);ctx.fill();
+ }else if(kind==='frost'){
+   ctx.fillStyle='#607786';ctx.beginPath();ctx.moveTo(-12,9);ctx.lineTo(-10,-6);ctx.lineTo(0,-23);ctx.lineTo(12,-6);ctx.lineTo(12,9);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#a8eafa';ctx.beginPath();ctx.moveTo(0,-23);ctx.lineTo(12,-6);ctx.lineTo(2,7);ctx.lineTo(0,-5);ctx.closePath();ctx.fill();ctx.strokeStyle='#d5f7ff';ctx.lineWidth=1.5;ctx.stroke();
+   ctx.strokeStyle='rgba(173,235,255,.8)';ctx.beginPath();ctx.arc(0,0,17+Math.sin(time*3)*1.5,0,Math.PI*2);ctx.stroke();
+ }else if(kind==='tesla'){
+   ctx.fillStyle='#77748d';ctx.beginPath();ctx.moveTo(-12,12);ctx.lineTo(-9,-13);ctx.lineTo(0,-21);ctx.lineTo(9,-13);ctx.lineTo(12,12);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#b4a6d3';ctx.fillRect(-8,-9,16,5);ctx.fillRect(-10,5,20,4);
+   ctx.strokeStyle='#e5c2ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-4,-13);ctx.lineTo(2,-23);ctx.lineTo(-1,-8);ctx.lineTo(9,-17);ctx.stroke();
+   const a=time*3;ctx.fillStyle='#eee0ff';ctx.beginPath();ctx.arc(Math.cos(a)*7,-15+Math.sin(a)*4,3,0,Math.PI*2);ctx.fill();
+ }else if(kind==='support'){
+   ctx.fillStyle='#6c4c2f';ctx.fillRect(-2,-25,4,38);ctx.fillStyle='#e7c98c';ctx.beginPath();ctx.arc(0,-26,3,0,Math.PI*2);ctx.fill();
+   const wave=Math.sin(time*4+t.x)*3;ctx.fillStyle='#a93e43';ctx.beginPath();ctx.moveTo(2,-23);ctx.lineTo(19+wave,-19);ctx.lineTo(17+wave,-7);ctx.lineTo(2,-10);ctx.closePath();ctx.fill();ctx.fillStyle='#f5ce78';ctx.beginPath();ctx.moveTo(9,-19);ctx.lineTo(12,-16);ctx.lineTo(9,-13);ctx.lineTo(6,-16);ctx.fill();
+ }
+ if(disabled){ctx.fillStyle='rgba(139,18,47,.45)';ctx.fillRect(-17,-25,35,43)}
+ ctx.restore();
+ // keep levels and specialization legible outside the silhouette
+ ctx.font='bold 10px Segoe UI';ctx.textAlign='center';ctx.fillStyle='#fff6da';ctx.strokeStyle='#17212c';ctx.lineWidth=3;ctx.strokeText(String(t.level),t.x,t.y+24);ctx.fillText(String(t.level),t.x,t.y+24);
+ if(t.special){ctx.fillStyle='#facc15';ctx.strokeText('★',t.x+16,t.y-15);ctx.fillText('★',t.x+16,t.y-15)}ctx.textAlign='left';
+}
 function draw(){ctx.clearRect(0,0,800,560);ctx.fillStyle='#244b32';ctx.fillRect(0,0,800,560);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){ctx.fillStyle=(x+y)%2?'#31583b':'#2a5035';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.strokeStyle='rgba(255,255,255,.045)';ctx.strokeRect(x*TILE,y*TILE,TILE,TILE)}for(const [x,y] of path){ctx.fillStyle='#867255';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.strokeStyle='#a99572';ctx.strokeRect(x*TILE+1,y*TILE+1,TILE-2,TILE-2)}ctx.fillStyle='#dbeafe';ctx.font='bold 14px Segoe UI';ctx.fillText('INVADERS',5,220);ctx.fillText('KEEP',751,180);
 if(selectedTower){ctx.beginPath();ctx.arc(selectedTower.x,selectedTower.y,types[selectedTower.type].range*(selectedTower.special==='Long Range'?1.45:1),0,Math.PI*2);ctx.fillStyle='rgba(125,211,252,.09)';ctx.fill();ctx.strokeStyle='rgba(125,211,252,.55)';ctx.stroke()}
-for(const t of state.towers){ctx.save();ctx.translate(t.x,t.y);ctx.fillStyle=t.disabledFor>0?'#9f1239':'#111827';ctx.fillRect(-16,-16,32,32);ctx.fillStyle=types[t.type].color;ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.fill();ctx.rotate(t.angle||0);ctx.fillStyle=t.type==='support'?'#f9d68b':'#e2e8f0';if(t.type==='support'){ctx.fillRect(-2,-23,4,32);ctx.fillRect(2,-22,15,12)}else if(t.type==='frost'||t.type==='tesla'){ctx.beginPath();ctx.moveTo(0,-19);ctx.lineTo(9,5);ctx.lineTo(-9,5);ctx.fill()}else{ctx.fillRect(0,-4,22,8)}ctx.restore();ctx.fillStyle='#fff';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';ctx.fillText(t.level,t.x,t.y+4);if(t.special){ctx.fillStyle='#facc15';ctx.fillText('★',t.x,t.y-20)}ctx.textAlign='left'}
+for(const t of state.towers){drawFantasyTower(t)}
+
 for(const e of state.enemies){
  ctx.save();ctx.translate(e.x,e.y);
  const scale=e.kind==='boss'?1.95:e.kind==='armored'?1.18:e.kind==='fast'?.83:1;
