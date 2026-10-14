@@ -86,12 +86,14 @@ for(const e of state.enemies){e.flash=Math.max(0,e.flash-dt);e.burnTime=Math.max
 }
 e.walkPhase=(e.walkPhase||0)+dt*(e.berserk?13:8);
 let remaining=e.speed*(e.berserk?1.7:1)*(e.slowTime>0?.55:1)*dt;while(remaining>0&&!e.dead){const dest=waypoints[e.next];if(!dest){e.dead=true;state.lives--;if(state.lives<=0){state.lives=0;state.over=true;message(`Game over! You survived ${state.wave} waves. Press Restart to try again.`)}sync();break}const dx=dest.x-e.x,dy=dest.y-e.y,d=Math.hypot(dx,dy);if(d<=remaining){e.x=dest.x;e.y=dest.y;e.next++;remaining-=d}else{e.x+=dx/d*remaining;e.y+=dy/d*remaining;remaining=0}}}
-for(const t of state.towers){t.disabledFor=Math.max(0,(t.disabledFor||0)-dt);t.cool-=dt;if(t.disabledFor>0)continue;const cfg=types[t.type];if(t.type==='support')continue;const boost=state.towers.some(a=>a.type==='support'&&a!==t&&Math.hypot(a.x-t.x,a.y-t.y)<types.support.range)?1.2:1;const candidates=state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-t.x,e.y-t.y)<=cfg.range*boost*(t.special==='Long Range'?1.45:1));const mode=t.mode||'First';candidates.sort((a,b)=>{const pa=a.next*1000-Math.hypot(a.x-waypoints[Math.min(a.next,waypoints.length-1)].x,a.y-waypoints[Math.min(a.next,waypoints.length-1)].y),pb=b.next*1000-Math.hypot(b.x-waypoints[Math.min(b.next,waypoints.length-1)].x,b.y-waypoints[Math.min(b.next,waypoints.length-1)].y);return mode==='Last'?pa-pb:mode==='Strongest'?b.hp-a.hp:mode==='Closest'?Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y):pb-pa});const target=candidates[0];if(target){t.angle=Math.atan2(target.y-t.y,target.x-t.x);if(t.cool<=0){t.cool=cfg.interval/Math.pow(1.18,t.level-1)/(t.special==='Rapid Fire'?2:1);state.shots.push({x:t.x,y:t.y,target,damage:cfg.damage*(1+.65*(t.level-1))*(t.special==='Heavy Damage'?1.85:1)*boost,speed:cfg.projectile,color:cfg.color,splash:cfg.splash||0,burn:cfg.burn||0,slow:cfg.slow||0,chain:cfg.chain||0});burst(t.x+Math.cos(t.angle)*18,t.y+Math.sin(t.angle)*18,cfg.color,2)}}}
+for(const t of state.towers){t.disabledFor=Math.max(0,(t.disabledFor||0)-dt);t.cool-=dt;if(t.disabledFor>0)continue;const cfg=types[t.type];if(t.type==='support')continue;const boost=state.towers.some(a=>a.type==='support'&&a!==t&&Math.hypot(a.x-t.x,a.y-t.y)<types.support.range)?1.2:1;const candidates=state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-t.x,e.y-t.y)<=cfg.range*boost*(t.special==='Long Range'?1.45:1));const mode=t.mode||'First';candidates.sort((a,b)=>{const pa=a.next*1000-Math.hypot(a.x-waypoints[Math.min(a.next,waypoints.length-1)].x,a.y-waypoints[Math.min(a.next,waypoints.length-1)].y),pb=b.next*1000-Math.hypot(b.x-waypoints[Math.min(b.next,waypoints.length-1)].x,b.y-waypoints[Math.min(b.next,waypoints.length-1)].y);return mode==='Last'?pa-pb:mode==='Strongest'?b.hp-a.hp:mode==='Closest'?Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y):pb-pa});const target=candidates[0];if(target){t.angle=Math.atan2(target.y-t.y,target.x-t.x);if(t.cool<=0){t.cool=cfg.interval/Math.pow(1.18,t.level-1)/(t.special==='Rapid Fire'?2:1);state.shots.push({x:t.x,y:t.y,target,damage:cfg.damage*(1+.65*(t.level-1))*(t.special==='Heavy Damage'?1.85:1)*boost,speed:cfg.projectile,color:cfg.color,visualTier:t.level>=5?3:t.level>=3?2:1,visualSpecial:!!t.special,splash:cfg.splash||0,burn:cfg.burn||0,slow:cfg.slow||0,chain:cfg.chain||0});burst(t.x+Math.cos(t.angle)*18,t.y+Math.sin(t.angle)*18,cfg.color,2)}}}
 for(const s of state.shots){if(s.dead)continue;if(s.target.dead){s.dead=true;continue}const dx=s.target.x-s.x,dy=s.target.y-s.y,d=Math.hypot(dx,dy),step=s.speed*dt;if(d<=step+6){const hits=s.splash?state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<=s.splash):[s.target];for(const e of hits){hit(e,s.damage);if(s.burn)e.burnTime=Math.max(e.burnTime||0,s.burn);if(s.slow)e.slowTime=Math.max(e.slowTime||0,s.slow)}if(s.chain){const extra=state.enemies.filter(e=>!e.dead&&e!==s.target&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<90).slice(0,s.chain);for(const e of extra){hit(e,s.damage*.55);burst(e.x,e.y,s.color,5)}}burst(s.target.x,s.target.y,s.color,s.splash?15:4);s.dead=true}else{s.x+=dx/d*step;s.y+=dy/d*step}}
 state.enemies=state.enemies.filter(e=>!e.dead);state.shots=state.shots.filter(s=>!s.dead);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0)}
 // Hand-drawn fantasy tower silhouettes, rendered directly on the canvas.
 function drawFantasyTower(t){
  const time=performance.now()/1000,kind=t.type;
+ const tier=t.level>=5?3:t.level>=3?2:1;
+ const elite=tier===3,fortified=tier>=2;
  ctx.save();ctx.translate(t.x,t.y);
  const disabled=t.disabledFor>0;
  // grounding shadow and defensive footprint
@@ -131,6 +133,42 @@ function drawFantasyTower(t){
    ctx.fillStyle='#6c4c2f';ctx.fillRect(-2,-25,4,38);ctx.fillStyle='#e7c98c';ctx.beginPath();ctx.arc(0,-26,3,0,Math.PI*2);ctx.fill();
    const wave=Math.sin(time*4+t.x)*3;ctx.fillStyle='#a93e43';ctx.beginPath();ctx.moveTo(2,-23);ctx.lineTo(19+wave,-19);ctx.lineTo(17+wave,-7);ctx.lineTo(2,-10);ctx.closePath();ctx.fill();ctx.fillStyle='#f5ce78';ctx.beginPath();ctx.moveTo(9,-19);ctx.lineTo(12,-16);ctx.lineTo(9,-13);ctx.lineTo(6,-16);ctx.fill();
  }
+ // v1.8: physical additions visibly evolve with the tower's level.
+ if(fortified){
+   ctx.strokeStyle=elite?'#dfc17c':'#a4a6a0';ctx.lineWidth=elite?4:3;
+   ctx.strokeRect(-16,-14,32,29);
+   for(const x of [-16,9]){ctx.fillStyle=elite?'#b9a780':'#858c8b';ctx.fillRect(x,-17,7,6)}
+   if(kind==='gun'||kind==='sniper'){
+     ctx.fillStyle=elite?'#bcae84':'#a1a39b';ctx.fillRect(-13,10,26,5);
+     ctx.fillStyle='#4b362b';ctx.fillRect(-13,-8,4,18);ctx.fillRect(9,-8,4,18);
+   }else if(kind==='cannon'){
+     ctx.strokeStyle=elite?'#e8b45c':'#aab0b4';ctx.lineWidth=3;
+     ctx.beginPath();ctx.moveTo(-16,-12);ctx.lineTo(16,12);ctx.moveTo(16,-12);ctx.lineTo(-16,12);ctx.stroke();
+   }else if(kind==='support'){
+     ctx.fillStyle='#cbb57b';ctx.fillRect(-15,9,30,5);
+   }
+ }
+ if(elite){
+   // Gold-trimmed elite defenses with a distinct crest.
+   ctx.strokeStyle='#f5c65f';ctx.lineWidth=2;
+   ctx.strokeRect(-18,-16,36,33);
+   for(const x of [-16,16]){ctx.fillStyle='#ffda7a';ctx.beginPath();ctx.arc(x,-17,3,0,Math.PI*2);ctx.fill()}
+   ctx.fillStyle='#ffe59d';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';ctx.fillText('◆',0,-30);
+   if(kind==='flame'||kind==='frost'||kind==='tesla'){
+     ctx.strokeStyle=kind==='flame'?'rgba(255,163,53,.75)':kind==='frost'?'rgba(145,233,255,.75)':'rgba(220,171,255,.75)';
+     ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-4,23+Math.sin(time*4)*2,0,Math.PI*2);ctx.stroke();
+   }
+ }
+ if(t.special){
+   const c=t.special==='Rapid Fire'?'#6fffd6':t.special==='Heavy Damage'?'#ff8b5e':'#b8a1ff';
+   ctx.strokeStyle=c;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-2,20+Math.sin(time*3)*1.5,Math.PI*.12,Math.PI*.88);ctx.stroke();
+   ctx.fillStyle=c;ctx.fillRect(-4,-19,8,3);
+ }
+ if(t.upgradeFlash){
+   const age=performance.now()-t.upgradeFlash;
+   if(age<750){ctx.globalAlpha=1-age/750;ctx.strokeStyle='#ffe99a';ctx.lineWidth=3;
+     ctx.beginPath();ctx.arc(0,0,18+age*.035,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
+ }
  if(disabled){ctx.fillStyle='rgba(139,18,47,.45)';ctx.fillRect(-17,-25,35,43)}
  ctx.restore();
  // keep levels and specialization legible outside the silhouette
@@ -164,13 +202,19 @@ for(const e of state.enemies){
 for(const r of cavalryRiders){ctx.save();ctx.translate(r.x,r.y);ctx.fillStyle='#d4b084';ctx.beginPath();ctx.ellipse(0,0,15,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f7e2ae';ctx.beginPath();ctx.arc(10,-4,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#415c79';ctx.fillRect(-6,-12,11,12);ctx.fillStyle='#f9d36d';ctx.fillRect(-2,-17,3,12);ctx.restore()}
 const boss=state.enemies.find(e=>e.kind==='boss'&&!e.dead);
 if(boss){ctx.fillStyle='rgba(14,10,28,.9)';ctx.fillRect(170,9,460,43);ctx.fillStyle='#f4c7fc';ctx.font='bold 15px Segoe UI';ctx.textAlign='center';ctx.fillText('☠ WARLORD OF THE ASHEN HOST'+(boss.berserk?' — ENRAGED!':''),400,25);ctx.fillStyle='#382344';ctx.fillRect(187,32,426,12);ctx.fillStyle='#d946ef';ctx.fillRect(187,32,426*Math.max(0,boss.hp/boss.maxHp),12);ctx.textAlign='left'}
-for(const s of state.shots){ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill()}
+for(const s of state.shots){
+ const radius=s.visualTier===3?6:s.visualTier===2?5:4;
+ if(s.visualTier>=2){ctx.strokeStyle=s.color;ctx.globalAlpha=.35;ctx.lineWidth=s.visualTier===3?3:2;
+ ctx.beginPath();ctx.arc(s.x,s.y,radius+4,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
+ ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,radius,0,Math.PI*2);ctx.fill();
+ if(s.visualSpecial){ctx.fillStyle='#fff4d0';ctx.beginPath();ctx.arc(s.x,s.y,2,0,Math.PI*2);ctx.fill()}
+}
 for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x-2,p.y-2,4,4)}ctx.globalAlpha=1;if(hover&&selectedType&&!selectedTower&&!state.over){const [x,y]=hover;const valid=canBuild(x,y);const cfg=types[selectedType];ctx.beginPath();ctx.arc(x,y,cfg.range,0,Math.PI*2);ctx.fillStyle=valid?'rgba(52,211,153,.075)':'rgba(248,113,113,.07)';ctx.fill();ctx.strokeStyle=valid?'rgba(52,211,153,.45)':'rgba(248,113,113,.45)';ctx.stroke();ctx.beginPath();ctx.arc(x,y,TOWER_RADIUS,0,Math.PI*2);ctx.fillStyle=valid?'rgba(52,211,153,.5)':'rgba(248,113,113,.55)';ctx.fill()}
 if(state.paused||state.over){ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,800,560);ctx.fillStyle='white';ctx.font='bold 44px Segoe UI';ctx.textAlign='center';ctx.fillText(state.over?'GAME OVER':'PAUSED',400,280);ctx.textAlign='left'}}
 function canBuild(x,y){if(x<TOWER_RADIUS||x>800-TOWER_RADIUS||y<TOWER_RADIUS||y>560-TOWER_RADIUS)return false;for(const [px,py] of path){const left=px*TILE,top=py*TILE;const closestX=Math.max(left,Math.min(x,left+TILE)),closestY=Math.max(top,Math.min(y,top+TILE));if(Math.hypot(x-closestX,y-closestY)<TOWER_RADIUS+3)return false}return !state.towers.some(t=>Math.hypot(t.x-x,t.y-y)<TOWER_RADIUS*2+4)}
 function pos(e){const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*800/r.width,(e.clientY-r.top)*560/r.height]}
 canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')hover=pos(e)});canvas.addEventListener('mouseleave',()=>hover=null);canvas.addEventListener('contextmenu',e=>{e.preventDefault();selectedTower=null;selectedType=null;document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('active'));sync()});canvas.addEventListener('click',e=>{if(state.over)return;const [x,y]=pos(e);hover=[x,y];const t=state.towers.find(t=>Math.hypot(t.x-x,t.y-y)<=TOWER_RADIUS+3);if(t){selectedTower=t;sync();return}if(!selectedType)return;const cfg=types[selectedType];if(!canBuild(x,y)){message('Too close to the path, edge, or another tower.');return}if(state.cash<cfg.cost){message(`Not enough cash for ${cfg.name}.`);return}state.cash-=cfg.cost;state.towers.push({type:selectedType,x,y,level:1,cool:0,spent:cfg.cost,mode:"First",angle:0,special:null});selectedTower=null;message(`${cfg.name} built!`);sync()});
-document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;selectedTower=null;document.querySelectorAll('[data-type]').forEach(z=>z.classList.toggle('active',z===b));sync()}));$('upgrade').addEventListener('click',()=>{const t=selectedTower;if(!t||state.over)return;const cost=upgradeCost(t);if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.level++;sync()});$('target').addEventListener('click',()=>{if(!selectedTower)return;selectedTower.mode=modes[(modes.indexOf(selectedTower.mode||'First')+1)%modes.length];sync()});$('specialize').addEventListener('click',()=>{const t=selectedTower;if(!t||t.level<3||t.special)return;const cost=types[t.type].cost*2;if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.special=t.type==='gun'?'Rapid Fire':t.type==='cannon'?'Heavy Damage':t.type==='sniper'?'Long Range':t.type==='flame'?'Heavy Damage':t.type==='frost'?'Rapid Fire':t.type==='tesla'?'Heavy Damage':'Long Range';message(t.special+' specialization unlocked!');sync()});
+document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;selectedTower=null;document.querySelectorAll('[data-type]').forEach(z=>z.classList.toggle('active',z===b));sync()}));$('upgrade').addEventListener('click',()=>{const t=selectedTower;if(!t||state.over)return;const cost=upgradeCost(t);if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.level++;t.upgradeFlash=performance.now();burst(t.x,t.y,'#f9d77a',15);message(`${types[t.type].name} upgraded to level ${t.level}!`);sync()});$('target').addEventListener('click',()=>{if(!selectedTower)return;selectedTower.mode=modes[(modes.indexOf(selectedTower.mode||'First')+1)%modes.length];sync()});$('specialize').addEventListener('click',()=>{const t=selectedTower;if(!t||t.level<3||t.special)return;const cost=types[t.type].cost*2;if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.upgradeFlash=performance.now();burst(t.x,t.y,'#d7a8ff',20);t.special=t.type==='gun'?'Rapid Fire':t.type==='cannon'?'Heavy Damage':t.type==='sniper'?'Long Range':t.type==='flame'?'Heavy Damage':t.type==='frost'?'Rapid Fire':t.type==='tesla'?'Heavy Damage':'Long Range';message(t.special+' specialization unlocked!');sync()});
 function saveGame(){const snapshot={...state,enemies:[],shots:[],waveActive:false,spawnRemaining:0,spawnTimer:0,paused:false};try{localStorage.setItem('ashenfallTDv15',JSON.stringify(snapshot));message('Game saved in this browser (between waves recommended).')}catch(err){message('Saving is blocked in this browser. Open the game from a website to enable saves.')}}
 function loadGame(){try{const saved=JSON.parse(localStorage.getItem('ashenfallTDv15')||localStorage.getItem('ashenfallTDv14'));if(!saved){message('No saved game found.');return}state={...saved,horns:saved.horns||0,runes:saved.runes||0,cavalryTime:0,cavalrySpawn:0,enemies:[],shots:[],waveActive:false,spawnRemaining:0,spawnTimer:0,paused:false};cavalryRiders=[];selectedTower=null;particles=[];message('Saved game loaded. Start the next wave!');sync()}catch(e){message('Could not load saved game.')}}
 $('cavalry').addEventListener('click',()=>{if(state.horns<=0||state.cavalryTime>0||state.over)return;state.horns--;state.cavalryTime=10;state.cavalrySpawn=0;message('📯 THE CAVALRY RIDES! Reinforcements charge for 10 seconds!');sync()});$('save').addEventListener('click',saveGame);$('load').addEventListener('click',loadGame);
