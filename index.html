@@ -29,7 +29,34 @@ button{min-height:44px;touch-action:manipulation}canvas{touch-action:manipulatio
  #message{font-size:14px;line-height:1.5;padding-bottom:12px}
 }
 @media(max-width:380px){.panel>button[data-type]{flex-basis:45%}.stats span{font-size:11px}}
-</style></head><body><main><header><h1>⚔️ Siege of Ashenfall</h1><div class="stats"><span>❤️ Lives: <b id="lives">20</b></span><span>💰 Cash: $<b id="cash">300</b></span><span>🌊 Wave: <b id="wave">0</b></span><span>⭐ Score: <b id="score">0</b></span></div></header><div id="mobileHelp">📱 Tap a tower below, then tap grass on the battlefield to build. Tap an existing tower to upgrade or change targeting. Rotate your phone for a larger battlefield.</div><div class="layout"><canvas id="game" width="800" height="560" aria-label="Tower defense battlefield"></canvas><aside class="panel"><h2>Defend the keep</h2><p>Goblin raiders, swift scouts, ironclads, shamans, and a warlord every 10 waves.</p><h2>Build towers</h2><button data-type="gun" class="active">🏹 Archer Tower — $75</button><button data-type="cannon">🪨 Stone Catapult — $140</button><button data-type="sniper">🎯 Ranger Watchtower — $200</button><button data-type="flame">🔥 Flame Spire — $175</button><button data-type="frost">❄️ Frost Obelisk — $160</button><button data-type="tesla">⚡ Storm Tower — $230</button><button data-type="support">✨ War Banner — $180</button><p>Select a tower, then click anywhere on the grass. Towers cannot overlap the path or another tower.</p><h2>Selected tower</h2><div id="selection">No tower selected.</div><button id="upgrade" disabled>Upgrade</button><button id="specialize" disabled>Specialize (Level 3+)</button><button id="target" disabled>🎯 Target: First</button><button id="sell" disabled>Sell tower</button><p>Right-click or press <kbd>Esc</kbd> to cancel placement. Click an existing tower to inspect it. At level 3, unlock its special upgrade. Save between waves. Bosses may drop runes or a rare Cavalry Horn. The horn calls riders for 10 seconds.</p></aside></div><div class="controls"><button id="cavalry" disabled>📯 Cavalry Horn × <b id="horns">0</b></button><button id="start">▶ Start next wave</button><button id="pause">⏸ Pause</button><button id="speed">⏩ Speed: 1×</button><button id="restart">↻ Restart</button><button id="save">💾 Save</button><button id="load">📂 Load</button></div><div id="message" role="status">Place towers before starting the first wave.</div></main><script>
+/* Ashenfall compact layout v1.6 */
+main{max-width:1360px}
+.layout{display:grid;grid-template-columns:minmax(0,800px) minmax(340px,1fr);align-items:start;gap:14px}
+.battlefield{min-width:0;width:100%}
+.battlefield canvas{width:100%}
+.battlefield .controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:8px 0}
+.battlefield .controls button{width:100%;min-width:0;padding:9px 5px;font-size:12px;text-align:center}
+.panel{min-width:0;display:block}
+.panel .tower-grid,.panel .upgrade-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.panel .tower-grid button,.panel .upgrade-grid button{width:100%;margin:0;min-width:0;text-align:center;font-size:12px;padding:9px 6px;line-height:1.3}
+.panel h2{margin:12px 0 8px}
+.panel h2:first-child{margin-top:0}
+.panel p{margin:7px 0}
+#selection{font-size:13px;line-height:1.4;margin-bottom:9px}
+@media(max-width:900px){
+ .layout{display:flex;flex-direction:column}
+ .battlefield{order:2;width:100%}
+ .panel{order:1;display:block;width:100%;padding:10px}
+ .panel>h2:first-child,.panel>p:first-of-type{display:none}
+ .panel .tower-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .panel .upgrade-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .panel .tower-grid button,.panel .upgrade-grid button{flex:none;min-width:0;width:100%;margin:0;min-height:44px}
+ .panel>h2:nth-of-type(2),.panel>h2:nth-of-type(3){margin:8px 0}
+ .panel>#selection{min-height:0}
+ .battlefield .controls{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:480px){.panel .tower-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.battlefield .controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head><body><main><header><h1>⚔️ Siege of Ashenfall</h1><div class="stats"><span>❤️ Lives: <b id="lives">20</b></span><span>💰 Cash: $<b id="cash">300</b></span><span>🌊 Wave: <b id="wave">0</b></span><span>⭐ Score: <b id="score">0</b></span></div></header><div id="mobileHelp">📱 Tap a tower below, then tap grass on the battlefield to build. Tap an existing tower to upgrade or change targeting. Rotate your phone for a larger battlefield.</div><div class="layout"><div class="battlefield"><canvas id="game" width="800" height="560" aria-label="Tower defense battlefield"></canvas><div class="controls"><button id="cavalry" disabled>📯 Cavalry Horn × <b id="horns">0</b></button><button id="start">▶ Start next wave</button><button id="pause">⏸ Pause</button><button id="speed">⏩ Speed: 1×</button><button id="restart">↻ Restart</button><button id="save">💾 Save</button><button id="load">📂 Load</button></div></div><aside class="panel"><h2>Defend the keep</h2><p>Goblin raiders, swift scouts, ironclads, shamans, and a warlord every 10 waves.</p><h2>Build towers</h2><div class="tower-grid"><button data-type="gun" class="active">🏹 Archer Tower — $75</button><button data-type="cannon">🪨 Stone Catapult — $140</button><button data-type="sniper">🎯 Ranger Watchtower — $200</button><button data-type="flame">🔥 Flame Spire — $175</button><button data-type="frost">❄️ Frost Obelisk — $160</button><button data-type="tesla">⚡ Storm Tower — $230</button><button data-type="support">✨ War Banner — $180</button><p>Select a tower, then click anywhere on the grass. Towers cannot overlap the path or another tower.</p><h2>Selected tower</h2><div id="selection">No tower selected.</div><div class="upgrade-grid"><button id="upgrade" disabled>Upgrade</button><button id="specialize" disabled>Specialize (Level 3+)</button><button id="target" disabled>🎯 Target: First</button><button id="sell" disabled>Sell tower</button></div><p>Right-click or press <kbd>Esc</kbd> to cancel placement. Click an existing tower to inspect it. At level 3, unlock its special upgrade. Save between waves. Bosses may drop runes or a rare Cavalry Horn. The horn calls riders for 10 seconds.</p></aside></div><div id="message" role="status">Place towers before starting the first wave.</div></main><script>
 (()=>{'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');const $=id=>document.getElementById(id);const TILE=40,COLS=20,ROWS=14;
 const path=[[0,6],[1,6],[2,6],[3,6],[3,5],[3,4],[4,4],[5,4],[6,4],[7,4],[7,5],[7,6],[8,6],[9,6],[10,6],[10,5],[10,4],[11,4],[12,4],[13,4],[13,5],[13,6],[13,7],[14,7],[15,7],[16,7],[16,6],[16,5],[17,5],[18,5],[19,5]];
