@@ -383,95 +383,145 @@ function drawAshenfallEnvironment(){
 }
 
 // ASHENFALL_FORTRESS_V2
+
+// ASHENFALL_CASTLE_V3
 function drawAshenfallKeep(){
- const x=764,y=220;
- ctx.save();
+ const g=ctx;
+ g.save();
 
- // Ground shadow.
- ctx.fillStyle='rgba(0,0,0,.38)';
- ctx.beginPath();
- ctx.ellipse(x+7,y+13,47,69,0,0,Math.PI*2);
- ctx.fill();
+ // Castle occupies the eastern edge, with the gate
+ // aligned to the existing road at y=220.
+ const wallX=766;
+ const gateY=220;
 
- // Main curtain wall.
- ctx.fillStyle='#343b3a';
- ctx.fillRect(x-23,y-65,59,130);
- ctx.strokeStyle='#89918a';
- ctx.lineWidth=3;
- ctx.strokeRect(x-23,y-65,59,130);
+ // Shadow beneath the eastern fortifications.
+ g.fillStyle='rgba(0,0,0,.35)';
+ g.fillRect(736,79,64,300);
 
- // Stone courses.
- ctx.strokeStyle='rgba(180,183,165,.25)';
- ctx.lineWidth=1;
- for(let yy=y-59;yy<y+60;yy+=13){
-  ctx.beginPath();
-  ctx.moveTo(x-22,yy);
-  ctx.lineTo(x+35,yy);
-  ctx.stroke();
+ // Long curtain wall.
+ g.fillStyle='#414946';
+ g.fillRect(wallX,82,34,290);
+ g.strokeStyle='#89918a';
+ g.lineWidth=2;
+ g.strokeRect(wallX,82,34,290);
+
+ // Stone masonry courses.
+ g.strokeStyle='rgba(180,185,170,.28)';
+ g.lineWidth=1;
+ for(let y=92;y<370;y+=13){
+  g.beginPath();
+  g.moveTo(wallX,y);
+  g.lineTo(800,y);
+  g.stroke();
  }
 
- // Flanking defensive towers.
- for(const ty of [y-53,y+53]){
-  ctx.fillStyle='#242b2b';
-  ctx.fillRect(x-35,ty-20,29,40);
-  ctx.fillStyle='#59615e';
-  ctx.fillRect(x-37,ty-23,31,42);
-  ctx.strokeStyle='#a1a59a';
-  ctx.strokeRect(x-37,ty-23,31,42);
+ // Main gatehouse foundation.
+ g.fillStyle='#303632';
+ g.fillRect(728,178,72,85);
+ g.fillStyle='#656d66';
+ g.fillRect(733,183,67,75);
+ g.strokeStyle='#a2a99c';
+ g.lineWidth=3;
+ g.strokeRect(733,183,67,75);
 
-  // Battlements.
-  ctx.fillStyle='#8c9187';
-  for(let i=0;i<3;i++){
-   ctx.fillRect(x-38+i*11,ty-27,8,8);
+ // Recessed gate and timber doors.
+ g.fillStyle='#181b19';
+ g.fillRect(739,202,36,48);
+ g.fillStyle='#4a3426';
+ g.fillRect(742,205,30,43);
+
+ for(let i=0;i<5;i++){
+  g.fillStyle=i%2?'#5d422e':'#3d2c23';
+  g.fillRect(742+i*6,205,5,43);
+ }
+
+ // Iron gate reinforcement.
+ g.fillStyle='#9c9787';
+ g.fillRect(741,216,32,3);
+ g.fillRect(741,237,32,3);
+
+ // Gatehouse battlements.
+ g.fillStyle='#899187';
+ for(let i=0;i<6;i++){
+  g.fillRect(731+i*12,172,9,13);
+ }
+
+ // Defensive towers above and below the gate.
+ function tower(cx,cy){
+  g.fillStyle='rgba(0,0,0,.35)';
+  g.fillRect(cx-22,cy-17,48,57);
+
+  g.fillStyle='#343b39';
+  g.fillRect(cx-23,cy-29,47,57);
+
+  g.fillStyle='#626b65';
+  g.fillRect(cx-19,cy-25,39,49);
+
+  g.strokeStyle='#a4aa9e';
+  g.lineWidth=2;
+  g.strokeRect(cx-19,cy-25,39,49);
+
+  // Masonry.
+  g.strokeStyle='rgba(210,210,190,.25)';
+  for(let yy=cy-15;yy<cy+24;yy+=11){
+   g.beginPath();
+   g.moveTo(cx-18,yy);
+   g.lineTo(cx+19,yy);
+   g.stroke();
   }
 
-  // Arrow slit.
-  ctx.fillStyle='#141a1b';
-  ctx.fillRect(x-24,ty-8,4,17);
+  // Narrow arrow slit.
+  g.fillStyle='#171e1c';
+  g.fillRect(cx-3,cy-8,6,21);
+
+  // Battlements.
+  g.fillStyle='#959d91';
+  for(let i=0;i<4;i++){
+   g.fillRect(cx-23+i*13,cy-34,10,12);
+  }
  }
 
- // Central gatehouse.
- ctx.fillStyle='#666c65';
- ctx.fillRect(x-30,y-25,45,50);
- ctx.strokeStyle='#a9ac9e';
- ctx.lineWidth=2;
- ctx.strokeRect(x-30,y-25,45,50);
+ tower(762,119);
+ tower(762,332);
 
- // Heavy timber gate.
- ctx.fillStyle='#28231d';
- ctx.fillRect(x-23,y-15,30,40);
- ctx.fillStyle='#493729';
- for(let i=0;i<5;i++){
-  ctx.fillRect(x-21+i*6,y-14,4,38);
+ // Dark crimson royal banners.
+ function banner(x,y){
+  g.fillStyle='#222522';
+  g.fillRect(x-2,y-4,3,43);
+
+  g.fillStyle='#692f31';
+  g.beginPath();
+  g.moveTo(x+1,y);
+  g.lineTo(x+19,y+4);
+  g.lineTo(x+17,y+27);
+  g.lineTo(x+10,y+22);
+  g.lineTo(x+1,y+27);
+  g.closePath();
+  g.fill();
+
+  g.fillStyle='#d1ad69';
+  g.fillRect(x+7,y+8,5,5);
  }
 
- // Iron reinforcement.
- ctx.fillStyle='#969082';
- ctx.fillRect(x-23,y-6,30,3);
- ctx.fillRect(x-23,y+14,30,3);
+ banner(743,83);
+ banner(743,293);
 
- // Battlements above gate.
- ctx.fillStyle='#999d92';
- for(let i=0;i<5;i++){
-  ctx.fillRect(x-32+i*10,y-33,7,11);
+ // Gate torches.
+ for(const y of [193,255]){
+  g.fillStyle='#30271e';
+  g.fillRect(730,y,5,11);
+
+  g.save();
+  g.shadowColor='#ff8b35';
+  g.shadowBlur=16;
+  g.fillStyle='#ffb24c';
+  g.beginPath();
+  g.arc(732,y,5,0,Math.PI*2);
+  g.fill();
+  g.restore();
  }
 
- // Original Ashenfall banner.
- ctx.fillStyle='#3a2426';
- ctx.fillRect(x+17,y-50,12,28);
- ctx.fillStyle='#b99458';
- ctx.fillRect(x+20,y-45,6,3);
-
- // Twin torches.
- for(const yy of [y-20,y+20]){
-  ctx.shadowColor='#ff8a29';
-  ctx.shadowBlur=15;
-  ctx.fillStyle='#ffb04d';
-  ctx.beginPath();
-  ctx.arc(x-31,yy,4,0,Math.PI*2);
-  ctx.fill();
- }
- ctx.restore();
+ g.restore();
 }
 
 function draw(){
@@ -480,7 +530,7 @@ function draw(){
  ctx.fillStyle='#e5dac2';
  ctx.font='bold 14px Georgia';
  ctx.fillText('INVADERS',5,220);
- ctx.fillText('KEEP',751,180);
+ 
 
 drawAshenfallKeep();
 
