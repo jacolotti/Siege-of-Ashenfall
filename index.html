@@ -166,9 +166,176 @@ $('tower-description').textContent=info?towerDescriptions[infoType]+(t?' | Level
 function startWave(){if(state.waveActive||state.over)return;state.wave++;state.waveActive=true;const cfg=difficultySettings[state.difficulty||'recruit'];state.spawnTotal=Math.ceil((7+state.wave*3+(state.wave%10===0?1:0))*cfg.count);state.spawnRemaining=state.spawnTotal;state.spawnTimer=0;const breach=state.wave===21?' ⚠️ NORTHERN BREACH OPEN!':state.wave===31?' ⚠️ SOUTHERN BREACH OPEN!':'';message(`Wave ${state.wave} — ${cfg.label}! ${activeRoutes()} invasion routes.${breach}${state.wave%10===0?' ⚠️ BOSS INCOMING!':''}`);sync()}
 function spawn(){const n=state.wave,ordinal=state.spawnTotal-state.spawnRemaining,cfg=difficultySettings[state.difficulty||'recruit'];let kind='normal';if(n%10===0&&state.spawnRemaining===1)kind='boss';else if(n>=4&&ordinal%5===0)kind='armored';else if(n>=6&&ordinal%7===0)kind='regen';else if(ordinal%4===0)kind='fast';const info={normal:[1,55,12,'#91b96c',10,14],fast:[.55,105,14,'#b7ca71',13,11],armored:[3.5,38,22,'#87949e',22,16],regen:[1.6,48,18,'#b68ee0',18,14],boss:[22,29,175,'#c87854',180,23]}[kind];const route=activeRoutes()===1?0:ordinal%activeRoutes();const wp=waypointPaths[route];const hp=(50+n*19)*info[0]*cfg.hp*(1+Math.max(0,n-20)*.035);state.enemies.push({x:wp[0].x,y:wp[0].y,next:1,route,hp,maxHp:hp,speed:(info[1]+n*1.2)*cfg.speed,radius:info[5],reward:info[4],color:info[3],kind,armor:kind==='armored'?.42:0,dead:false,flash:0,abilityTimer:4,berserk:false,walkPhase:Math.random()*6.28,burnTime:0,slowTime:0})}
 
-function burst(x,y,color,count=10){for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,v=35+Math.random()*115;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.3+Math.random()*.4,max:.7,color})}}
-function hit(e,damage){if(e.dead)return;e.hp-=Math.max(1,damage*(1-e.armor));e.flash=.12;if(e.hp<=0){e.dead=true;state.cash+=e.reward;state.score+=10*state.wave+(e.kind==='boss'?500:0);if(e.kind==='boss'){state.cash+=250;const hornDrop=Math.random()<.38;if(hornDrop){state.horns=(state.horns||0)+1;message('BOSS SLAIN! +$250 and a rare CAVALRY HORN! 📯')}else{state.runes=(state.runes||0)+1;state.cash+=100;message('BOSS SLAIN! +$250, enchanted rune worth $100!')}} burst(e.x,e.y,e.color,e.kind==='boss'?35:10);sync()}}
-function update(dt){if(state.paused||state.over)return;if(state.cavalryTime>0){state.cavalryTime=Math.max(0,state.cavalryTime-dt);state.cavalrySpawn-=dt;if(state.cavalrySpawn<=0){state.cavalrySpawn=.6;cavalryRiders.push({x:waypoints[waypoints.length-1].x,y:waypoints[waypoints.length-1].y,next:waypoints.length-2,life:14})}}for(const rider of cavalryRiders){rider.life-=dt;let dist=310*dt;while(dist>0&&rider.next>=0){const p=waypoints[rider.next],dx=p.x-rider.x,dy=p.y-rider.y,d=Math.hypot(dx,dy);if(d<=dist){rider.x=p.x;rider.y=p.y;rider.next--;dist-=d}else{rider.x+=dx/d*dist;rider.y+=dy/d*dist;dist=0}}for(const e of state.enemies){if(!e.dead&&Math.hypot(e.x-rider.x,e.y-rider.y)<30){hit(e,Math.max(180,75+state.wave*20));burst(e.x,e.y,'#fbd780',5)}}}cavalryRiders=cavalryRiders.filter(r=>r.life>0&&r.next>=0);if(state.waveActive){state.spawnTimer-=dt;if(state.spawnRemaining>0&&state.spawnTimer<=0){spawn();state.spawnRemaining--;state.spawnTimer=difficultySettings[state.difficulty||'recruit'].interval}if(state.spawnRemaining===0&&state.enemies.length===0){state.waveActive=false;state.cash+=40+state.wave*5;message(state.wave===20?'NORTHERN BREACH NEXT! Prepare defenses before wave 21.':state.wave===30?'SOUTHERN BREACH NEXT! Prepare defenses before wave 31.':`Wave ${state.wave} cleared! Bonus cash awarded.`);sync()}}
+
+// ASHENFALL_COMBAT_FX_V1
+function burst(x,y,color,count=10){
+ for(let i=0;i<count;i++){
+  const a=Math.random()*Math.PI*2;
+  const v=35+Math.random()*115;
+  const life=.3+Math.random()*.4;
+  particles.push({
+   x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,
+   life,max:life,color
+  });
+ }
+}
+
+function combatImpact(e,death=false){
+ const x=e.x,y=e.y;
+ const boss=e.kind==='boss';
+ const armored=e.kind==='armored';
+ const shaman=e.kind==='regen';
+
+ const color=shaman?'#b97aff':
+             armored?'#f3c77e':
+             boss?'#ff8954':'#d4b18a';
+
+ const count=death?(boss?65:armored?25:16):4;
+
+ for(let i=0;i<count;i++){
+  const a=Math.random()*Math.PI*2;
+  const speed=(death?85:38)+Math.random()*
+              (boss?180:death?95:55);
+  const life=.15+Math.random()*(death?.65:.22);
+
+  particles.push({
+   x:x+(Math.random()-.5)*8,
+   y:y-12+(Math.random()-.5)*8,
+   vx:Math.cos(a)*speed,
+   vy:Math.sin(a)*speed-(death?30:0),
+   life,max:life,
+   color:i%4===0?'#fff0c1':color,
+   size:death?(boss?5:3):2
+  });
+ }
+
+ if(death){
+  const rings=boss?3:1;
+  for(let i=0;i<rings;i++){
+   const life=.35+i*.13;
+   particles.push({
+    x,y:y-8,vx:0,vy:0,
+    life,max:life,
+    color:shaman?'#bd8aff':'#f0b975',
+    ring:true,
+    radius:boss?24+i*13:15,
+    size:2
+   });
+  }
+ }
+}
+
+function hit(e,damage){if(e.dead)return;e.hp-=Math.max(1,damage*(1-e.armor));e.flash=.12;if(e.hp>0 && Math.random()<.35)combatImpact(e,false);if(e.hp<=0){combatImpact(e,true);e.dead=true;state.cash+=e.reward;state.score+=10*state.wave+(e.kind==='boss'?500:0);if(e.kind==='boss'){state.cash+=250;const hornDrop=Math.random()<.38;if(hornDrop){state.horns=(state.horns||0)+1;message('BOSS SLAIN! +$250 and a rare CAVALRY HORN! 📯')}else{state.runes=(state.runes||0)+1;state.cash+=100;message('BOSS SLAIN! +$250, enchanted rune worth $100!')}} burst(e.x,e.y,e.color,e.kind==='boss'?35:10);sync()}}
+
+// ASHENFALL_CAVALRY_ROUTES_V1
+let cavalryRouteCursor=0;
+
+function createCavalryRider(){
+ const counts=new Array(activeRoutes()).fill(0);
+
+ for(const enemy of state.enemies){
+  if(!enemy.dead && enemy.route<counts.length){
+   counts[enemy.route]++;
+  }
+ }
+
+ const occupied=counts
+  .map((count,route)=>({count,route}))
+  .filter(item=>item.count>0)
+  .map(item=>item.route);
+
+ const routes=occupied.length?occupied:[0];
+
+ const route=routes[cavalryRouteCursor%routes.length];
+ cavalryRouteCursor++;
+
+ const path=waypointPaths[route];
+
+ return {
+  x:path[path.length-1].x,
+  y:path[path.length-1].y,
+  next:path.length-2,
+  route,
+  life:14
+ };
+}
+
+
+// ASHENFALL_COMBAT_FX_V2
+function towerImpactFX(shot,x,y){
+ const type=shot.type||'gun';
+
+ const styles={
+  gun:{color:'#d9c49a',count:5,speed:55},
+  cannon:{color:'#b6a18b',count:22,speed:125},
+  sniper:{color:'#f1d6ff',count:12,speed:145},
+  flame:{color:'#ff7838',count:16,speed:85},
+  frost:{color:'#b8efff',count:15,speed:105},
+  tesla:{color:'#d6a5ff',count:18,speed:150}
+ };
+
+ const fx=styles[type]||styles.gun;
+
+ for(let i=0;i<fx.count;i++){
+  const angle=Math.random()*Math.PI*2;
+  const speed=fx.speed*(.35+Math.random());
+  const life=.18+Math.random()*.38;
+
+  particles.push({
+   x,y:y-9,
+   vx:Math.cos(angle)*speed,
+   vy:Math.sin(angle)*speed,
+   life,max:life,
+   color:fx.color,
+   size:type==='cannon'?4:type==='sniper'?3:2
+  });
+ }
+
+ if(type==='cannon'){
+  for(let i=0;i<3;i++){
+   const life=.4+i*.1;
+   particles.push({
+    x,y:y-5,
+    vx:0,vy:0,
+    life,max:life,
+    ring:true,
+    radius:12+i*8,
+    color:'#c2a58b',
+    size:2
+   });
+  }
+ }
+
+ if(type==='frost'||type==='tesla'){
+  const life=.3;
+  particles.push({
+   x,y:y-9,
+   vx:0,vy:0,
+   life,max:life,
+   ring:true,
+   radius:type==='frost'?18:24,
+   color:fx.color,
+   size:2
+  });
+ }
+
+ if(type==='flame'){
+  for(let i=0;i<7;i++){
+   const life=.25+Math.random()*.3;
+   particles.push({
+    x:x+(Math.random()-.5)*16,
+    y:y-12,
+    vx:(Math.random()-.5)*30,
+    vy:-35-Math.random()*65,
+    life,max:life,
+    color:i%2?'#ffb347':'#ff512b',
+    size:3
+   });
+  }
+ }
+}
+
+function update(dt){if(state.paused||state.over)return;if(state.cavalryTime>0){state.cavalryTime=Math.max(0,state.cavalryTime-dt);state.cavalrySpawn-=dt;if(state.cavalrySpawn<=0){state.cavalrySpawn=.6;cavalryRiders.push(createCavalryRider())}}for(const rider of cavalryRiders){rider.life-=dt;let dist=310*dt;while(dist>0&&rider.next>=0){const p=waypointPaths[rider.route][rider.next],dx=p.x-rider.x,dy=p.y-rider.y,d=Math.hypot(dx,dy);if(d<=dist){rider.x=p.x;rider.y=p.y;rider.next--;dist-=d}else{rider.x+=dx/d*dist;rider.y+=dy/d*dist;dist=0}}for(const e of state.enemies){if(!e.dead&&Math.hypot(e.x-rider.x,e.y-rider.y)<30){hit(e,Math.max(180,75+state.wave*20));burst(e.x,e.y,'#fbd780',5)}}}cavalryRiders=cavalryRiders.filter(r=>r.life>0&&r.next>=0);if(state.waveActive){state.spawnTimer-=dt;if(state.spawnRemaining>0&&state.spawnTimer<=0){spawn();state.spawnRemaining--;state.spawnTimer=difficultySettings[state.difficulty||'recruit'].interval}if(state.spawnRemaining===0&&state.enemies.length===0){state.waveActive=false;state.cash+=40+state.wave*5;message(state.wave===20?'NORTHERN BREACH NEXT! Prepare defenses before wave 21.':state.wave===30?'SOUTHERN BREACH NEXT! Prepare defenses before wave 31.':`Wave ${state.wave} cleared! Bonus cash awarded.`);sync()}}
 for(const e of state.enemies){e.flash=Math.max(0,e.flash-dt);e.burnTime=Math.max(0,(e.burnTime||0)-dt);e.slowTime=Math.max(0,(e.slowTime||0)-dt);if(e.burnTime>0)hit(e,dt*(13+state.wave*.7));if(e.kind==='regen')e.hp=Math.min(e.maxHp,e.hp+e.maxHp*.018*dt);if(e.kind==='boss'){
  e.abilityTimer-=dt;
  if(e.hp<e.maxHp*.5)e.berserk=true;
@@ -181,8 +348,8 @@ for(const e of state.enemies){e.flash=Math.max(0,e.flash-dt);e.burnTime=Math.max
 }
 e.walkPhase=(e.walkPhase||0)+dt*(e.berserk?13:8);
 let remaining=e.speed*(e.berserk?1.7:1)*(e.slowTime>0?.55:1)*dt;while(remaining>0&&!e.dead){const dest=routeFor(e)[e.next];if(!dest){e.dead=true;state.lives--;if(state.lives<=0){state.lives=0;state.over=true;message(`Game over! You survived ${state.wave} waves. Press Restart to try again.`)}sync();break}const dx=dest.x-e.x,dy=dest.y-e.y,d=Math.hypot(dx,dy);if(d<=remaining){e.x=dest.x;e.y=dest.y;e.next++;remaining-=d}else{e.x+=dx/d*remaining;e.y+=dy/d*remaining;remaining=0}}}
-for(const t of state.towers){t.disabledFor=Math.max(0,(t.disabledFor||0)-dt);t.cool-=dt;if(t.disabledFor>0)continue;const cfg=types[t.type];if(t.type==='support')continue;const boost=bannerBoost(t);const candidates=state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-t.x,e.y-t.y)<=cfg.range*boost*(t.special==='Long Range'?1.45:1));const mode=t.mode||'First';candidates.sort((a,b)=>{const aw=routeFor(a),bw=routeFor(b),pa=a.next*1000-Math.hypot(a.x-aw[Math.min(a.next,aw.length-1)].x,a.y-aw[Math.min(a.next,aw.length-1)].y),pb=b.next*1000-Math.hypot(b.x-bw[Math.min(b.next,bw.length-1)].x,b.y-bw[Math.min(b.next,bw.length-1)].y);return mode==='Last'?pa-pb:mode==='Strongest'?b.hp-a.hp:mode==='Closest'?Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y):pb-pa});const target=candidates[0];if(target){t.angle=Math.atan2(target.y-t.y,target.x-t.x);if(t.cool<=0){t.cool=cfg.interval/Math.pow(1.18,t.level-1)/(t.special==='Rapid Fire'?2:1);state.shots.push({x:t.x,y:t.y,target,damage:cfg.damage*(1+.65*(t.level-1))*(t.special==='Heavy Damage'?1.85:1)*boost,speed:cfg.projectile,color:cfg.color,visualTier:t.level>=5?3:t.level>=3?2:1,visualSpecial:!!t.special,splash:cfg.splash||0,burn:cfg.burn||0,slow:cfg.slow||0,chain:cfg.chain||0});burst(t.x+Math.cos(t.angle)*18,t.y+Math.sin(t.angle)*18,cfg.color,2)}}}
-for(const s of state.shots){if(s.dead)continue;if(s.target.dead){s.dead=true;continue}const dx=s.target.x-s.x,dy=s.target.y-s.y,d=Math.hypot(dx,dy),step=s.speed*dt;if(d<=step+6){const hits=s.splash?state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<=s.splash):[s.target];for(const e of hits){hit(e,s.damage);if(s.burn)e.burnTime=Math.max(e.burnTime||0,s.burn);if(s.slow)e.slowTime=Math.max(e.slowTime||0,s.slow)}if(s.chain){const extra=state.enemies.filter(e=>!e.dead&&e!==s.target&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<90).slice(0,s.chain);for(const e of extra){hit(e,s.damage*.55);burst(e.x,e.y,s.color,5)}}burst(s.target.x,s.target.y,s.color,s.splash?15:4);s.dead=true}else{s.x+=dx/d*step;s.y+=dy/d*step}}
+for(const t of state.towers){t.disabledFor=Math.max(0,(t.disabledFor||0)-dt);t.cool-=dt;if(t.disabledFor>0)continue;const cfg=types[t.type];if(t.type==='support')continue;const boost=bannerBoost(t);const candidates=state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-t.x,e.y-t.y)<=cfg.range*boost*(t.special==='Long Range'?1.45:1));const mode=t.mode||'First';candidates.sort((a,b)=>{const aw=routeFor(a),bw=routeFor(b),pa=a.next*1000-Math.hypot(a.x-aw[Math.min(a.next,aw.length-1)].x,a.y-aw[Math.min(a.next,aw.length-1)].y),pb=b.next*1000-Math.hypot(b.x-bw[Math.min(b.next,bw.length-1)].x,b.y-bw[Math.min(b.next,bw.length-1)].y);return mode==='Last'?pa-pb:mode==='Strongest'?b.hp-a.hp:mode==='Closest'?Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y):pb-pa});const target=candidates[0];if(target){t.angle=Math.atan2(target.y-t.y,target.x-t.x);if(t.cool<=0){t.cool=cfg.interval/Math.pow(1.18,t.level-1)/(t.special==='Rapid Fire'?2:1);state.shots.push({type:t.type,x:t.x,y:t.y,target,damage:cfg.damage*(1+.65*(t.level-1))*(t.special==='Heavy Damage'?1.85:1)*boost,speed:cfg.projectile,color:cfg.color,visualTier:t.level>=5?3:t.level>=3?2:1,visualSpecial:!!t.special,splash:cfg.splash||0,burn:cfg.burn||0,slow:cfg.slow||0,chain:cfg.chain||0});burst(t.x+Math.cos(t.angle)*18,t.y+Math.sin(t.angle)*18,cfg.color,2)}}}
+for(const s of state.shots){if(s.dead)continue;if(s.target.dead){s.dead=true;continue}const dx=s.target.x-s.x,dy=s.target.y-s.y,d=Math.hypot(dx,dy),step=s.speed*dt;if(d<=step+6){const hits=s.splash?state.enemies.filter(e=>!e.dead&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<=s.splash):[s.target];for(const e of hits){hit(e,s.damage);if(s.burn)e.burnTime=Math.max(e.burnTime||0,s.burn);if(s.slow)e.slowTime=Math.max(e.slowTime||0,s.slow)}if(s.chain){const extra=state.enemies.filter(e=>!e.dead&&e!==s.target&&Math.hypot(e.x-s.target.x,e.y-s.target.y)<90).slice(0,s.chain);for(const e of extra){hit(e,s.damage*.55);burst(e.x,e.y,s.color,5)}}towerImpactFX(s,s.target.x,s.target.y);s.dead=true}else{s.x+=dx/d*step;s.y+=dy/d*step}}
 state.enemies=state.enemies.filter(e=>!e.dead);state.shots=state.shots.filter(s=>!s.dead);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0)}
 // Hand-drawn fantasy tower silhouettes, rendered directly on the canvas.
 
@@ -899,7 +1066,25 @@ for(const s of state.shots){
  ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,radius,0,Math.PI*2);ctx.fill();
  if(s.visualSpecial){ctx.fillStyle='#fff4d0';ctx.beginPath();ctx.arc(s.x,s.y,2,0,Math.PI*2);ctx.fill()}
 }
-for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x-2,p.y-2,4,4)}ctx.globalAlpha=1;if(hover&&selectedType&&!selectedTower&&!state.over){const [x,y]=hover;const valid=canBuild(x,y);const cfg=types[selectedType];ctx.beginPath();ctx.arc(x,y,selectedType==='support'?130:cfg.range,0,Math.PI*2);ctx.fillStyle=valid?'rgba(52,211,153,.075)':'rgba(248,113,113,.07)';ctx.fill();ctx.strokeStyle=valid?'rgba(52,211,153,.45)':'rgba(248,113,113,.45)';ctx.stroke();ctx.beginPath();ctx.arc(x,y,TOWER_RADIUS,0,Math.PI*2);ctx.fillStyle=valid?'rgba(52,211,153,.5)':'rgba(248,113,113,.55)';ctx.fill()}
+
+for(const p of particles){
+ ctx.globalAlpha=Math.max(0,p.life/p.max);
+
+ if(p.ring){
+  const progress=1-p.life/p.max;
+  ctx.strokeStyle=p.color;
+  ctx.lineWidth=p.size||2;
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,p.radius*(.4+progress),0,Math.PI*2);
+  ctx.stroke();
+ }else{
+  ctx.fillStyle=p.color;
+  const size=p.size||4;
+  ctx.fillRect(p.x-size/2,p.y-size/2,size,size);
+ }
+}
+ctx.globalAlpha=1;
+if(hover&&selectedType&&!selectedTower&&!state.over){const [x,y]=hover;const valid=canBuild(x,y);const cfg=types[selectedType];ctx.beginPath();ctx.arc(x,y,selectedType==='support'?130:cfg.range,0,Math.PI*2);ctx.fillStyle=valid?'rgba(52,211,153,.075)':'rgba(248,113,113,.07)';ctx.fill();ctx.strokeStyle=valid?'rgba(52,211,153,.45)':'rgba(248,113,113,.45)';ctx.stroke();ctx.beginPath();ctx.arc(x,y,TOWER_RADIUS,0,Math.PI*2);ctx.fillStyle=valid?'rgba(52,211,153,.5)':'rgba(248,113,113,.55)';ctx.fill()}
 if(state.paused||state.over){ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,800,560);ctx.fillStyle='white';ctx.font='bold 44px Segoe UI';ctx.textAlign='center';ctx.fillText(state.over?'GAME OVER':'PAUSED',400,280);ctx.textAlign='left'}}
 function canBuild(x,y){if(x<TOWER_RADIUS||x>800-TOWER_RADIUS||y<TOWER_RADIUS||y>560-TOWER_RADIUS)return false;for(const [px,py] of reservedPaths().flat()){const left=px*TILE,top=py*TILE;const closestX=Math.max(left,Math.min(x,left+TILE)),closestY=Math.max(top,Math.min(y,top+TILE));if(Math.hypot(x-closestX,y-closestY)<TOWER_RADIUS+3)return false}return !state.towers.some(t=>Math.hypot(t.x-x,t.y-y)<TOWER_RADIUS*2+4)}
 function pos(e){const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*800/r.width,(e.clientY-r.top)*560/r.height]}
