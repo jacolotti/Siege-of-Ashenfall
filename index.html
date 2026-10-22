@@ -109,7 +109,8 @@ function effectiveTowerRange(t){
 const TOWER_RADIUS=17, PATH_HALF=20;const modes=["First","Last","Strongest","Closest"];let particles=[];let cavalryRiders=[];let state,selectedType='gun',selectedTower=null,hover=null,last=performance.now();
 function reset(){const difficulty=$('difficulty').value;const cfg=difficultySettings[difficulty];state={difficulty,cash:cfg.cash,lives:cfg.lives,wave:0,score:0,horns:0,runes:0,cavalryTime:0,cavalrySpawn:0,towers:[],enemies:[],shots:[],waveActive:false,spawnRemaining:0,spawnTimer:0,spawnTotal:0,paused:false,speed:1,over:false};selectedTower=null;selectedType='gun';document.querySelectorAll('[data-type]').forEach(b=>b.classList.toggle('active',b.dataset.type==='gun'));$('start').disabled=false;$('difficulty').disabled=false;$('pause').textContent='⏸ Pause';$('speed').textContent='⏩ Speed: 1×';particles=[];cavalryRiders=[];message('Defend the keep! Place towers before wave one. Bosses arrive every 10 waves.');sync()}
 function message(t){$('message').textContent=t}
-function sync(){$('horns').textContent=state.horns||0;$('cavalry').disabled=!state.horns||state.over||state.cavalryTime>0;for(const k of ['cash','lives','wave','score'])$(k).textContent=state[k];$('start').disabled=state.waveActive||state.over;$('difficulty').disabled=state.wave>0;$('route-info').textContent=`${difficultySettings[state.difficulty||'recruit'].label} • ${activeRoutes()} active invasion ${activeRoutes()===1?'route':'routes'} • New routes at waves 21 and 31.`;$('upgrade').disabled=!selectedTower||state.over||state.cash<upgradeCost(selectedTower);$('sell').disabled=!selectedTower||state.over;$('target').disabled=!selectedTower||state.over||selectedTower.type==='support';$('specialize').disabled=!selectedTower||state.over||selectedTower.level<3||!!selectedTower.special||state.cash<Math.round(types[selectedTower.type].cost*2);$('target').textContent='🎯 Target: '+(selectedTower?.mode||'First');$('specialize').textContent=selectedTower?.special?'Specialized: '+selectedTower.special:'Specialize (Level 3+, $'+(selectedTower?types[selectedTower.type].cost*2:0)+')';const t=selectedTower;$('selection').textContent=t?
+function buildingLocked(){return state.over || (state.paused && state.waveActive)}
+function sync(){document.querySelectorAll('[data-type]').forEach(b=>b.disabled=buildingLocked());$('horns').textContent=state.horns||0;$('cavalry').disabled=!state.horns||state.over||state.cavalryTime>0;for(const k of ['cash','lives','wave','score'])$(k).textContent=state[k];$('start').disabled=state.waveActive||state.over;$('difficulty').disabled=state.wave>0;$('route-info').textContent=`${difficultySettings[state.difficulty||'recruit'].label} • ${activeRoutes()} active invasion ${activeRoutes()===1?'route':'routes'} • New routes at waves 21 and 31.`;$('upgrade').disabled=!selectedTower||buildingLocked()||state.cash<upgradeCost(selectedTower);$('sell').disabled=!selectedTower||buildingLocked();$('target').disabled=!selectedTower||buildingLocked()||selectedTower.type==='support';$('specialize').disabled=!selectedTower||buildingLocked()||selectedTower.level<3||!!selectedTower.special||state.cash<Math.round(types[selectedTower.type].cost*2);$('target').textContent='🎯 Target: '+(selectedTower?.mode||'First');$('specialize').textContent=selectedTower?.special?'Specialized: '+selectedTower.special:'Specialize (Level 3+, $'+(selectedTower?types[selectedTower.type].cost*2:0)+')';const t=selectedTower;$('selection').textContent=t?
 (t.type==='support'
  ? 'War Banner | Level '+t.level+
    ' | Support radius '+bannerRadius(t)+
@@ -135,7 +136,7 @@ function spawn(){const n=state.wave,ordinal=state.spawnTotal-state.spawnRemainin
 
 function burst(x,y,color,count=10){for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,v=35+Math.random()*115;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.3+Math.random()*.4,max:.7,color})}}
 function hit(e,damage){if(e.dead)return;e.hp-=Math.max(1,damage*(1-e.armor));e.flash=.12;if(e.hp<=0){e.dead=true;state.cash+=e.reward;state.score+=10*state.wave+(e.kind==='boss'?500:0);if(e.kind==='boss'){state.cash+=250;const hornDrop=Math.random()<.38;if(hornDrop){state.horns=(state.horns||0)+1;message('BOSS SLAIN! +$250 and a rare CAVALRY HORN! 📯')}else{state.runes=(state.runes||0)+1;state.cash+=100;message('BOSS SLAIN! +$250, enchanted rune worth $100!')}} burst(e.x,e.y,e.color,e.kind==='boss'?35:10);sync()}}
-function update(dt){if(state.paused||state.over)return;if(state.cavalryTime>0){state.cavalryTime=Math.max(0,state.cavalryTime-dt);state.cavalrySpawn-=dt;if(state.cavalrySpawn<=0){state.cavalrySpawn=.6;cavalryRiders.push({x:waypoints[waypoints.length-1].x,y:waypoints[waypoints.length-1].y,next:waypoints.length-2,life:14})}}for(const rider of cavalryRiders){rider.life-=dt;let dist=310*dt;while(dist>0&&rider.next>=0){const p=waypoints[rider.next],dx=p.x-rider.x,dy=p.y-rider.y,d=Math.hypot(dx,dy);if(d<=dist){rider.x=p.x;rider.y=p.y;rider.next--;dist-=d}else{rider.x+=dx/d*dist;rider.y+=dy/d*dist;dist=0}}for(const e of state.enemies){if(!e.dead&&Math.hypot(e.x-rider.x,e.y-rider.y)<30){hit(e,Math.max(180,75+state.wave*20));burst(e.x,e.y,'#fbd780',5)}}}cavalryRiders=cavalryRiders.filter(r=>r.life>0&&r.next>=0);if(state.waveActive){state.spawnTimer-=dt;if(state.spawnRemaining>0&&state.spawnTimer<=0){spawn();state.spawnRemaining--;state.spawnTimer=difficultySettings[state.difficulty||'recruit'].interval}if(state.spawnRemaining===0&&state.enemies.length===0){state.waveActive=false;state.cash+=40+state.wave*5;message(`Wave ${state.wave} cleared! Bonus cash awarded.`);sync()}}
+function update(dt){if(state.paused||state.over)return;if(state.cavalryTime>0){state.cavalryTime=Math.max(0,state.cavalryTime-dt);state.cavalrySpawn-=dt;if(state.cavalrySpawn<=0){state.cavalrySpawn=.6;cavalryRiders.push({x:waypoints[waypoints.length-1].x,y:waypoints[waypoints.length-1].y,next:waypoints.length-2,life:14})}}for(const rider of cavalryRiders){rider.life-=dt;let dist=310*dt;while(dist>0&&rider.next>=0){const p=waypoints[rider.next],dx=p.x-rider.x,dy=p.y-rider.y,d=Math.hypot(dx,dy);if(d<=dist){rider.x=p.x;rider.y=p.y;rider.next--;dist-=d}else{rider.x+=dx/d*dist;rider.y+=dy/d*dist;dist=0}}for(const e of state.enemies){if(!e.dead&&Math.hypot(e.x-rider.x,e.y-rider.y)<30){hit(e,Math.max(180,75+state.wave*20));burst(e.x,e.y,'#fbd780',5)}}}cavalryRiders=cavalryRiders.filter(r=>r.life>0&&r.next>=0);if(state.waveActive){state.spawnTimer-=dt;if(state.spawnRemaining>0&&state.spawnTimer<=0){spawn();state.spawnRemaining--;state.spawnTimer=difficultySettings[state.difficulty||'recruit'].interval}if(state.spawnRemaining===0&&state.enemies.length===0){state.waveActive=false;state.cash+=40+state.wave*5;message(state.wave===20?'NORTHERN BREACH NEXT! Prepare defenses before wave 21.':state.wave===30?'SOUTHERN BREACH NEXT! Prepare defenses before wave 31.':`Wave ${state.wave} cleared! Bonus cash awarded.`);sync()}}
 for(const e of state.enemies){e.flash=Math.max(0,e.flash-dt);e.burnTime=Math.max(0,(e.burnTime||0)-dt);e.slowTime=Math.max(0,(e.slowTime||0)-dt);if(e.burnTime>0)hit(e,dt*(13+state.wave*.7));if(e.kind==='regen')e.hp=Math.min(e.maxHp,e.hp+e.maxHp*.018*dt);if(e.kind==='boss'){
  e.abilityTimer-=dt;
  if(e.hp<e.maxHp*.5)e.berserk=true;
@@ -237,7 +238,198 @@ function drawFantasyTower(t){
  ctx.font='bold 10px Segoe UI';ctx.textAlign='center';ctx.fillStyle='#fff6da';ctx.strokeStyle='#17212c';ctx.lineWidth=3;ctx.strokeText(String(t.level),t.x,t.y+24);ctx.fillText(String(t.level),t.x,t.y+24);
  if(t.special){ctx.fillStyle='#facc15';ctx.strokeText('★',t.x+16,t.y-15);ctx.fillText('★',t.x+16,t.y-15)}ctx.textAlign='left';
 }
-function draw(){ctx.clearRect(0,0,800,560);ctx.fillStyle='#244b32';ctx.fillRect(0,0,800,560);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){ctx.fillStyle=(x+y)%2?'#31583b':'#2a5035';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.strokeStyle='rgba(255,255,255,.045)';ctx.strokeRect(x*TILE,y*TILE,TILE,TILE)}for(const [x,y] of paths.slice(0,activeRoutes()).flat()){ctx.fillStyle='#867255';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.strokeStyle='#a99572';ctx.strokeRect(x*TILE+1,y*TILE+1,TILE-2,TILE-2)}ctx.fillStyle='#dbeafe';ctx.font='bold 14px Segoe UI';ctx.fillText('INVADERS',5,220);ctx.fillText('KEEP',751,180);
+
+let terrainCache=null;
+let terrainRouteCount=-1;
+
+
+
+function drawAshenfallEnvironment(){
+ const routes=activeRoutes();
+
+ if(!terrainCache || terrainRouteCount!==routes){
+  const layer=document.createElement('canvas');
+  layer.width=800;
+  layer.height=560;
+  const g=layer.getContext('2d');
+
+  let seed=28471;
+  function rnd(){
+   seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+   return seed/4294967296;
+  }
+
+  g.fillStyle='#293c2b';
+  g.fillRect(0,0,800,560);
+
+  // Uneven vegetation and earth.
+  const colors=['#41543a','#526044','#23372b',
+                '#645d42','#344a35','#6c684c'];
+
+  for(let i=0;i<21000;i++){
+   g.globalAlpha=.08+rnd()*.28;
+   g.fillStyle=colors[Math.floor(rnd()*colors.length)];
+   g.fillRect(rnd()*800,rnd()*560,2+rnd()*9,1+rnd()*5);
+  }
+  g.globalAlpha=1;
+
+  // Continuous roads following the existing route centers.
+  for(let r=0;r<routes;r++){
+   const route=paths[r];
+   const points=route.map(([x,y])=>[
+     x*TILE+TILE/2,y*TILE+TILE/2
+   ]);
+
+   function strokeRoad(width,color){
+    g.beginPath();
+    points.forEach(([x,y],i)=>{
+     if(i===0)g.moveTo(x,y);
+     else g.lineTo(x,y);
+    });
+    g.lineJoin='round';
+    g.lineCap='round';
+    g.lineWidth=width;
+    g.strokeStyle=color;
+    g.stroke();
+   }
+
+   strokeRoad(43,'#46503a');
+   strokeRoad(36,'#786b50');
+   strokeRoad(27,'#655943');
+   strokeRoad(19,'#817258');
+
+   // Fine worn tracks along the road center.
+   g.save();
+   g.globalAlpha=.24;
+   strokeRoad(2,'#c0aa80');
+   g.restore();
+  }
+
+  // Environmental details stay off all present and future lanes.
+  function safe(x,y,pad=24){
+   if(x<pad||y<pad||x>800-pad||y>560-pad)
+    return false;
+   for(const route of paths){
+    for(const [cx,cy] of route){
+     const px=cx*TILE+20,py=cy*TILE+20;
+     if(Math.hypot(x-px,y-py)<pad+17)return false;
+    }
+   }
+   return true;
+  }
+
+  // Rocks and dead shrubs.
+  for(let i=0;i<250;i++){
+   const x=rnd()*800,y=rnd()*560;
+   if(!safe(x,y,12))continue;
+
+   if(rnd()<.55){
+    g.fillStyle='#596154';
+    g.beginPath();
+    g.ellipse(x,y,2+rnd()*5,2+rnd()*3,
+              rnd(),0,Math.PI*2);
+    g.fill();
+    g.strokeStyle='#242f29';
+    g.stroke();
+   }else{
+    g.strokeStyle='#697451';
+    g.lineWidth=1;
+    for(let j=0;j<3;j++){
+     g.beginPath();
+     g.moveTo(x,y);
+     g.lineTo(x-5+rnd()*10,y-4-rnd()*7);
+     g.stroke();
+    }
+   }
+  }
+
+  // Small stands of dark, weathered trees.
+  for(let i=0;i<34;i++){
+   const x=rnd()*800,y=rnd()*560;
+   if(!safe(x,y,27))continue;
+
+   g.fillStyle='rgba(0,0,0,.25)';
+   g.beginPath();
+   g.ellipse(x+5,y+8,14,6,0,0,Math.PI*2);
+   g.fill();
+
+   g.fillStyle='#312d24';
+   g.fillRect(x-2,y-3,4,15);
+
+   for(let j=0;j<3;j++){
+    g.fillStyle=['#233c2d','#304b32','#405039'][j];
+    g.beginPath();
+    g.arc(x+(j-1)*5,y-7-j*4,9-j,0,Math.PI*2);
+    g.fill();
+   }
+  }
+
+  terrainCache=layer;
+  terrainRouteCount=routes;
+ }
+
+ ctx.drawImage(terrainCache,0,0);
+}
+
+function drawAshenfallKeep(){
+ const x=766,y=220;
+
+ ctx.save();
+
+ // Stone defensive wall.
+ ctx.fillStyle='#343a39';
+ ctx.fillRect(x-13,y-48,47,96);
+ ctx.strokeStyle='#89908a';
+ ctx.lineWidth=3;
+ ctx.strokeRect(x-13,y-48,47,96);
+
+ // Gatehouse.
+ ctx.fillStyle='#555c58';
+ ctx.fillRect(x-23,y-28,40,58);
+ ctx.strokeStyle='#a3a89b';
+ ctx.strokeRect(x-23,y-28,40,58);
+
+ // Dark iron gate.
+ ctx.fillStyle='#211e1b';
+ ctx.fillRect(x-13,y-3,20,33);
+
+ // Portcullis bars.
+ ctx.strokeStyle='#8e8472';
+ ctx.lineWidth=2;
+ for(let i=0;i<4;i++){
+  ctx.beginPath();
+  ctx.moveTo(x-11+i*5,y-3);
+  ctx.lineTo(x-11+i*5,y+29);
+  ctx.stroke();
+ }
+
+ // Battlements.
+ ctx.fillStyle='#777f78';
+ for(let i=0;i<5;i++){
+  ctx.fillRect(x-22+i*11,y-38,8,12);
+ }
+
+ // Torchlight.
+ ctx.shadowColor='#ff8b32';
+ ctx.shadowBlur=14;
+ ctx.fillStyle='#ffae47';
+ ctx.beginPath();
+ ctx.arc(x-18,y+1,4,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.restore();
+}
+
+function draw(){
+ ctx.clearRect(0,0,800,560);
+ drawAshenfallEnvironment();
+ ctx.fillStyle='#e5dac2';
+ ctx.font='bold 14px Georgia';
+ ctx.fillText('INVADERS',5,220);
+ ctx.fillText('KEEP',751,180);
+
+drawAshenfallKeep();
+
 if(selectedTower){ctx.beginPath();ctx.arc(selectedTower.x,selectedTower.y,effectiveTowerRange(selectedTower),0,Math.PI*2);ctx.fillStyle='rgba(125,211,252,.09)';ctx.fill();ctx.strokeStyle='rgba(125,211,252,.55)';ctx.stroke()}
 for(const t of state.towers){drawFantasyTower(t)}
 
@@ -275,12 +467,12 @@ for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle
 if(state.paused||state.over){ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,800,560);ctx.fillStyle='white';ctx.font='bold 44px Segoe UI';ctx.textAlign='center';ctx.fillText(state.over?'GAME OVER':'PAUSED',400,280);ctx.textAlign='left'}}
 function canBuild(x,y){if(x<TOWER_RADIUS||x>800-TOWER_RADIUS||y<TOWER_RADIUS||y>560-TOWER_RADIUS)return false;for(const [px,py] of reservedPaths().flat()){const left=px*TILE,top=py*TILE;const closestX=Math.max(left,Math.min(x,left+TILE)),closestY=Math.max(top,Math.min(y,top+TILE));if(Math.hypot(x-closestX,y-closestY)<TOWER_RADIUS+3)return false}return !state.towers.some(t=>Math.hypot(t.x-x,t.y-y)<TOWER_RADIUS*2+4)}
 function pos(e){const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*800/r.width,(e.clientY-r.top)*560/r.height]}
-canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')hover=pos(e)});canvas.addEventListener('mouseleave',()=>hover=null);canvas.addEventListener('contextmenu',e=>{e.preventDefault();selectedTower=null;selectedType=null;document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('active'));sync()});canvas.addEventListener('click',e=>{if(state.over)return;const [x,y]=pos(e);hover=[x,y];const t=state.towers.find(t=>Math.hypot(t.x-x,t.y-y)<=TOWER_RADIUS+3);if(t){selectedTower=t;sync();return}if(!selectedType)return;const cfg=types[selectedType];if(!canBuild(x,y)){message('Too close to the path, edge, or another tower.');return}if(state.cash<cfg.cost){message(`Not enough cash for ${cfg.name}.`);return}state.cash-=cfg.cost;state.towers.push({type:selectedType,x,y,level:1,cool:0,spent:cfg.cost,mode:"First",angle:0,special:null});selectedTower=null;message(`${cfg.name} built!`);sync()});
-document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;selectedTower=null;document.querySelectorAll('[data-type]').forEach(z=>z.classList.toggle('active',z===b));sync()}));$('upgrade').addEventListener('click',()=>{const t=selectedTower;if(!t||state.over)return;const cost=upgradeCost(t);if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.level++;t.upgradeFlash=performance.now();burst(t.x,t.y,'#f9d77a',15);message(`${types[t.type].name} upgraded to level ${t.level}!`);sync()});$('target').addEventListener('click',()=>{if(!selectedTower)return;selectedTower.mode=modes[(modes.indexOf(selectedTower.mode||'First')+1)%modes.length];sync()});$('specialize').addEventListener('click',()=>{const t=selectedTower;if(!t||t.level<3||t.special)return;const cost=types[t.type].cost*2;if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.upgradeFlash=performance.now();burst(t.x,t.y,'#d7a8ff',20);t.special=t.type==='gun'?'Rapid Fire':t.type==='cannon'?'Heavy Damage':t.type==='sniper'?'Long Range':t.type==='flame'?'Heavy Damage':t.type==='frost'?'Rapid Fire':t.type==='tesla'?'Heavy Damage':'Long Range';message(t.special+' specialization unlocked!');sync()});
+canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')hover=pos(e)});canvas.addEventListener('mouseleave',()=>hover=null);canvas.addEventListener('contextmenu',e=>{e.preventDefault();selectedTower=null;selectedType=null;document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('active'));sync()});canvas.addEventListener('click',e=>{if(state.over)return;const [x,y]=pos(e);hover=[x,y];const t=state.towers.find(t=>Math.hypot(t.x-x,t.y-y)<=TOWER_RADIUS+3);if(t){selectedTower=t;sync();return}if(!selectedType)return;if(buildingLocked()){message('Resume combat to build.');return;}const cfg=types[selectedType];if(!canBuild(x,y)){message('Too close to the path, edge, or another tower.');return}if(state.cash<cfg.cost){message(`Not enough cash for ${cfg.name}.`);return}state.cash-=cfg.cost;state.towers.push({type:selectedType,x,y,level:1,cool:0,spent:cfg.cost,mode:"First",angle:0,special:null});selectedTower=null;message(`${cfg.name} built!`);sync()});
+document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;selectedTower=null;document.querySelectorAll('[data-type]').forEach(z=>z.classList.toggle('active',z===b));sync()}));$('upgrade').addEventListener('click',()=>{const t=selectedTower;if(!t||buildingLocked())return;const cost=upgradeCost(t);if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.level++;t.upgradeFlash=performance.now();burst(t.x,t.y,'#f9d77a',15);message(`${types[t.type].name} upgraded to level ${t.level}!`);sync()});$('target').addEventListener('click',()=>{if(!selectedTower||buildingLocked())return;selectedTower.mode=modes[(modes.indexOf(selectedTower.mode||'First')+1)%modes.length];sync()});$('specialize').addEventListener('click',()=>{const t=selectedTower;if(!t||buildingLocked()||t.level<3||t.special)return;const cost=types[t.type].cost*2;if(state.cash<cost)return;state.cash-=cost;t.spent+=cost;t.upgradeFlash=performance.now();burst(t.x,t.y,'#d7a8ff',20);t.special=t.type==='gun'?'Rapid Fire':t.type==='cannon'?'Heavy Damage':t.type==='sniper'?'Long Range':t.type==='flame'?'Heavy Damage':t.type==='frost'?'Rapid Fire':t.type==='tesla'?'Heavy Damage':'Long Range';message(t.special+' specialization unlocked!');sync()});
 function saveGame(){const snapshot={...state,enemies:[],shots:[],waveActive:false,spawnRemaining:0,spawnTimer:0,paused:false};try{localStorage.setItem('ashenfallTDv15',JSON.stringify(snapshot));message('Game saved in this browser (between waves recommended).')}catch(err){message('Saving is blocked in this browser. Open the game from a website to enable saves.')}}
 function loadGame(){try{const saved=JSON.parse(localStorage.getItem('ashenfallTDv15')||localStorage.getItem('ashenfallTDv14'));if(!saved){message('No saved game found.');return}state={...saved,difficulty:saved.difficulty||'recruit',horns:saved.horns||0,runes:saved.runes||0,cavalryTime:0,cavalrySpawn:0,enemies:[],shots:[],waveActive:false,spawnRemaining:0,spawnTimer:0,paused:false};$('difficulty').value=state.difficulty;cavalryRiders=[];selectedTower=null;particles=[];message('Saved game loaded. Start the next wave!');sync()}catch(e){message('Could not load saved game.')}}
 $('cavalry').addEventListener('click',()=>{if(state.horns<=0||state.cavalryTime>0||state.over)return;state.horns--;state.cavalryTime=10;state.cavalrySpawn=0;message('📯 THE CAVALRY RIDES! Reinforcements charge for 10 seconds!');sync()});$('save').addEventListener('click',saveGame);$('load').addEventListener('click',loadGame);
-$('sell').addEventListener('click',()=>{if(!selectedTower||state.over)return;state.cash+=Math.floor(selectedTower.spent*.65);state.towers=state.towers.filter(t=>t!==selectedTower);selectedTower=null;sync()});$('difficulty').addEventListener('change',()=>{if(state.wave===0)reset()});$('start').addEventListener('click',startWave);$('pause').addEventListener('click',()=>{if(state.over)return;state.paused=!state.paused;$('pause').textContent=state.paused?'▶ Resume':'⏸ Pause'});$('speed').addEventListener('click',()=>{state.speed=state.speed===1?2:state.speed===2?3:1;$('speed').textContent=`⏩ Speed: ${state.speed}×`});$('restart').addEventListener('click',reset);window.addEventListener('keydown',e=>{if(e.key==='Escape'){selectedTower=null;selectedType=null;document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('active'));sync()}});
+$('sell').addEventListener('click',()=>{if(!selectedTower||buildingLocked())return;state.cash+=Math.floor(selectedTower.spent*.65);state.towers=state.towers.filter(t=>t!==selectedTower);selectedTower=null;sync()});$('difficulty').addEventListener('change',()=>{if(state.wave===0)reset()});$('start').addEventListener('click',startWave);$('pause').addEventListener('click',()=>{if(state.over)return;state.paused=!state.paused;$('pause').textContent=state.paused?'\u25b6 Resume':'\u23f8 Pause';sync();message(state.paused?'Combat paused - building and upgrades disabled.':'Combat resumed.');});$('speed').addEventListener('click',()=>{state.speed=state.speed===1?2:state.speed===2?3:1;$('speed').textContent=`⏩ Speed: ${state.speed}×`});$('restart').addEventListener('click',reset);window.addEventListener('keydown',e=>{if(e.key==='Escape'){selectedTower=null;selectedType=null;document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('active'));sync()}});
 function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt*state.speed);draw();requestAnimationFrame(frame)}reset();requestAnimationFrame(frame);
 })();
 </script></body></html>
