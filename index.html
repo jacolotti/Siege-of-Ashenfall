@@ -60,7 +60,39 @@ main{max-width:1360px}
 
 
 #difficulty{width:100%;padding:10px;border-radius:7px;background:#1d3027;color:#f4ebd6;border:1px solid #71836a;font-weight:700}#difficulty:disabled{opacity:.6}#route-info{font-size:12px;color:#f4cb8b}
-</style></head><body><main><header><h1>⚔️ Siege of Ashenfall</h1><div class="stats"><span>❤️ Lives: <b id="lives">20</b></span><span>💰 Cash: $<b id="cash">300</b></span><span>🌊 Wave: <b id="wave">0</b></span><span>⭐ Score: <b id="score">0</b></span></div></header><div id="mobileHelp">📱 Tap a tower below, then tap grass on the battlefield to build. Tap an existing tower to upgrade or change targeting. Rotate your phone for a larger battlefield.</div><div class="layout"><div class="battlefield"><canvas id="game" width="800" height="560" aria-label="Tower defense battlefield"></canvas><div class="controls"><button id="cavalry" disabled>📯 Cavalry Horn × <b id="horns">0</b></button><button id="start">▶ Start next wave</button><button id="pause">⏸ Pause</button><button id="speed">⏩ Speed: 1×</button><button id="restart">↻ Restart</button><button id="save">💾 Save</button><button id="load">📂 Load</button></div></div><aside class="panel"><h2>Defend the keep</h2><p>Goblin raiders, swift scouts, ironclads, shamans, and a warlord every 10 waves.</p><h2>Difficulty</h2><select id="difficulty" aria-label="Difficulty"><option value="recruit">🛡️ Recruit — approachable</option><option value="veteran" selected>⚔️ Veteran — challenging</option><option value="nightmare">💀 Nightmare — brutal</option></select><p id="route-info">Routes: 1 active • Northern breach at wave 21 • Southern breach at wave 31.</p><h2>Build towers</h2><div class="tower-grid"><button data-type="gun" class="active">🏹 Archer Tower — $75</button><button data-type="cannon">🪨 Stone Catapult — $140</button><button data-type="sniper">🎯 Ranger Watchtower — $200</button><button data-type="flame">🔥 Flame Spire — $175</button><button data-type="frost">❄️ Frost Obelisk — $160</button><button data-type="tesla">⚡ Storm Tower — $230</button><button data-type="support">✨ War Banner — $180</button></div><p>Select a tower, then click anywhere on the grass. Towers cannot overlap the path or another tower.</p><h2>Selected tower</h2><div id="selection">No tower selected.</div><div id="tower-description" role="status" aria-live="polite" style="font-size:13px;line-height:1.5;margin:7px 0 12px;color:#dce7f5"></div><div class="upgrade-grid"><button id="upgrade" disabled>Upgrade</button><button id="specialize" disabled>Specialize (Level 3+)</button><button id="target" disabled>🎯 Target: First</button><button id="sell" disabled>Sell tower</button></div><p>Right-click or press <kbd>Esc</kbd> to cancel placement. Click an existing tower to inspect it. At level 3, unlock its special upgrade. Save between waves. Bosses may drop runes or a rare Cavalry Horn. The horn calls riders for 10 seconds.</p></aside></div><div id="message" role="status">Place towers before starting the first wave.</div></main><script>
+</style></head><body><main><header><h1>⚔️ Siege of Ashenfall</h1><div class="stats"><span>❤️ Lives: <b id="lives">20</b></span><span>💰 Cash: $<b id="cash">300</b></span><span>🌊 Wave: <b id="wave">0</b></span><span>⭐ Score: <b id="score">0</b></span></div></header><div id="mobileHelp">📱 Tap a tower below, then tap grass on the battlefield to build. Tap an existing tower to upgrade or change targeting. Rotate your phone for a larger battlefield.</div><div class="layout"><div class="battlefield"><canvas id="game" width="800" height="560" aria-label="Tower defense battlefield"></canvas><div class="controls"><button id="cavalry" disabled>📯 Cavalry Horn × <b id="horns">0</b></button><button id="start">▶ Start next wave</button><button id="pause">⏸ Pause</button><button id="speed">⏩ Speed: 1×</button><button id="restart">↻ Restart</button><button id="save">💾 Save</button><button id="load">📂 Load</button></div></div><aside class="panel"><h2>Defend the keep</h2><p>Goblin raiders, swift scouts, ironclads, shamans, and a warlord every 10 waves.</p><h2>Difficulty</h2><select id="difficulty" aria-label="Difficulty"><option value="recruit">🛡️ Recruit — approachable</option><option value="veteran" selected>⚔️ Veteran — challenging</option><option value="nightmare">💀 Nightmare — brutal</option></select><p id="route-info">Routes: 1 active • Northern breach at wave 21 • Southern breach at wave 31.</p>
+<!-- ASHENFALL_KINGDOM_SETTINGS_V1 -->
+<section id="kingdom-settings" style="margin:12px 0 18px;padding:12px;border:1px solid #59654e;border-radius:9px;background:#17251f">
+ <h2 style="margin:0 0 8px">Kingdom Settings</h2>
+ <p style="font-size:12px;margin:0 0 10px;color:#c8c8b8">Customize your kingdom's banners and heraldry.</p>
+ <label for="kingdom-primary">Primary color</label>
+ <select id="kingdom-primary" style="width:100%;margin:5px 0 10px">
+  <option value="#a83b3b">Crimson</option>
+  <option value="#356ca9">Royal Blue</option>
+  <option value="#397a50">Forest Green</option>
+  <option value="#8055a4">Imperial Purple</option>
+  <option value="#c49a3c">Golden</option>
+  <option value="#363b44">Black</option>
+ </select>
+ <label for="kingdom-secondary">Secondary color</label>
+ <select id="kingdom-secondary" style="width:100%;margin:5px 0 10px">
+  <option value="#c49a3c">Golden</option>
+  <option value="#a83b3b">Crimson</option>
+  <option value="#356ca9">Royal Blue</option>
+  <option value="#397a50">Forest Green</option>
+  <option value="#8055a4">Imperial Purple</option>
+  <option value="#e0ded2">Silver</option>
+ </select>
+ <label for="kingdom-emblem">Kingdom emblem</label>
+ <select id="kingdom-emblem" style="width:100%;margin:5px 0 0">
+  <option value="wolf">Wolf</option>
+  <option value="dragon">Dragon</option>
+  <option value="stag">Stag</option>
+  <option value="eagle">Eagle</option>
+  <option value="swords">Crossed Swords</option>
+ </select>
+</section>
+<h2>Build towers</h2><div class="tower-grid"><button data-type="gun" class="active">🏹 Archer Tower — $75</button><button data-type="cannon">🪨 Stone Catapult — $140</button><button data-type="sniper">🎯 Ranger Watchtower — $200</button><button data-type="flame">🔥 Flame Spire — $175</button><button data-type="frost">❄️ Frost Obelisk — $160</button><button data-type="tesla">⚡ Storm Tower — $230</button><button data-type="support">✨ War Banner — $180</button></div><p>Select a tower, then click anywhere on the grass. Towers cannot overlap the path or another tower.</p><h2>Selected tower</h2><div id="selection">No tower selected.</div><div id="tower-description" role="status" aria-live="polite" style="font-size:13px;line-height:1.5;margin:7px 0 12px;color:#dce7f5"></div><div class="upgrade-grid"><button id="upgrade" disabled>Upgrade</button><button id="specialize" disabled>Specialize (Level 3+)</button><button id="target" disabled>🎯 Target: First</button><button id="sell" disabled>Sell tower</button></div><p>Right-click or press <kbd>Esc</kbd> to cancel placement. Click an existing tower to inspect it. At level 3, unlock its special upgrade. Save between waves. Bosses may drop runes or a rare Cavalry Horn. The horn calls riders for 10 seconds.</p></aside></div><div id="message" role="status">Place towers before starting the first wave.</div></main><script>
 (()=>{'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');const $=id=>document.getElementById(id);const TILE=40,COLS=20,ROWS=14;
 const path=[[0,6],[1,6],[2,6],[3,6],[3,5],[3,4],[4,4],[5,4],[6,4],[7,4],[7,5],[7,6],[8,6],[9,6],[10,6],[10,5],[10,4],[11,4],[12,4],[13,4],[13,5],[13,6],[13,7],[14,7],[15,7],[16,7],[16,6],[16,5],[17,5],[18,5],[19,5]];
@@ -385,6 +417,108 @@ function drawAshenfallEnvironment(){
 // ASHENFALL_FORTRESS_V2
 
 // ASHENFALL_CASTLE_V3
+
+// ASHENFALL_KINGDOM_SETTINGS_V1
+const kingdomDefaults={
+ primary:'#a83b3b',
+ secondary:'#c49a3c',
+ emblem:'wolf'
+};
+const kingdomPalette={
+ primary:['#a83b3b','#356ca9','#397a50','#8055a4','#c49a3c','#363b44'],
+ secondary:['#c49a3c','#a83b3b','#356ca9','#397a50','#8055a4','#e0ded2']
+};
+const kingdomEmblems=['wolf','dragon','stag','eagle','swords'];
+let kingdom={...kingdomDefaults};
+
+function validateKingdom(data){
+ const result={...kingdomDefaults};
+ if(data && typeof data==='object'){
+  for(const field of ['primary','secondary']){
+   if(kingdomPalette[field].includes(data[field]))
+    result[field]=data[field];
+  }
+  if(kingdomEmblems.includes(data.emblem))
+   result.emblem=data.emblem;
+ }
+ return result;
+}
+
+function saveKingdom(){
+ try{
+  localStorage.setItem('ashenfallKingdomV1',JSON.stringify(kingdom));
+ }catch(e){}
+}
+
+function initializeKingdom(){
+ try{
+  kingdom=validateKingdom(JSON.parse(
+   localStorage.getItem('ashenfallKingdomV1')||'null'
+  ));
+ }catch(e){
+  kingdom={...kingdomDefaults};
+ }
+
+ for(const field of ['primary','secondary','emblem']){
+  const el=document.getElementById('kingdom-'+field);
+  el.value=kingdom[field];
+  el.addEventListener('change',()=>{
+   kingdom[field]=el.value;
+   kingdom=validateKingdom(kingdom);
+   saveKingdom();
+  });
+ }
+}
+
+function drawKingdomEmblem(g,x,y){
+ // Compact original heraldic marks; detailed artwork comes later.
+ g.save();
+ g.translate(x,y);
+ g.strokeStyle=kingdom.secondary;
+ g.fillStyle=kingdom.secondary;
+ g.lineWidth=1.5;
+ g.lineCap='round';
+
+ if(kingdom.emblem==='swords'){
+  g.beginPath();
+  g.moveTo(-4,-5);g.lineTo(4,5);
+  g.moveTo(4,-5);g.lineTo(-4,5);
+  g.moveTo(-5,-3);g.lineTo(-2,-6);
+  g.moveTo(5,-3);g.lineTo(2,-6);
+  g.stroke();
+ }else if(kingdom.emblem==='stag'){
+  g.beginPath();
+  g.moveTo(0,5);g.lineTo(0,-3);
+  g.moveTo(0,-3);g.lineTo(-5,-6);
+  g.moveTo(0,-3);g.lineTo(5,-6);
+  g.moveTo(-3,-4);g.lineTo(-3,-7);
+  g.moveTo(3,-4);g.lineTo(3,-7);
+  g.stroke();
+ }else if(kingdom.emblem==='eagle'){
+  g.beginPath();
+  g.moveTo(0,-5);g.lineTo(-6,1);
+  g.lineTo(-2,1);g.lineTo(0,6);
+  g.lineTo(2,1);g.lineTo(6,1);
+  g.closePath();g.fill();
+ }else if(kingdom.emblem==='dragon'){
+  g.beginPath();
+  g.moveTo(-4,5);g.lineTo(-2,-4);
+  g.lineTo(3,-6);g.lineTo(1,-1);
+  g.lineTo(5,1);g.lineTo(0,5);
+  g.closePath();g.fill();
+ }else{
+  // Wolf head silhouette.
+  g.beginPath();
+  g.moveTo(-5,-6);g.lineTo(-2,-2);
+  g.lineTo(2,-2);g.lineTo(5,-6);
+  g.lineTo(4,3);g.lineTo(0,6);
+  g.lineTo(-4,3);g.closePath();g.fill();
+ }
+ g.restore();
+}
+
+initializeKingdom();
+
 function drawAshenfallKeep(){
  const g=ctx;
  g.save();
@@ -489,7 +623,7 @@ function drawAshenfallKeep(){
   g.fillStyle='#222522';
   g.fillRect(x-2,y-4,3,43);
 
-  g.fillStyle='#692f31';
+  g.fillStyle=kingdom.primary;
   g.beginPath();
   g.moveTo(x+1,y);
   g.lineTo(x+19,y+4);
@@ -499,8 +633,8 @@ function drawAshenfallKeep(){
   g.closePath();
   g.fill();
 
-  g.fillStyle='#d1ad69';
-  g.fillRect(x+7,y+8,5,5);
+  g.fillStyle=kingdom.secondary;
+  drawKingdomEmblem(g,x+10,y+14);
  }
 
  banner(743,83);
