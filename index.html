@@ -265,6 +265,94 @@ function drawTowerBanner(t){
  ctx.restore();
 }
 
+
+// ASHENFALL_GOBLIN_ANIMATION_V1
+// ASHENFALL_ENEMY_EXPANSION_V2
+const enemySpriteSets={normal:[],fast:[],armored:[],regen:[],boss:[]};
+
+function loadGoblinSprites(){
+ for(const [kind,name] of [
+  ['normal','raider'],
+  ['fast','scout'],
+  ['armored','ironclad'],
+  ['regen','shaman'],
+  ['boss','warlord']
+ ]){
+  for(let i=1;i<=4;i++){
+   const img=new Image();
+   const record={img,ready:false};
+   enemySpriteSets[kind].push(record);
+   img.onload=()=>{record.ready=true;};
+   img.onerror=()=>{record.ready=false;};
+   img.src='assets/enemies/'+name+'-'+i+'.webp';
+  }
+ }
+}
+
+function drawEnemySprite(e){
+ const frames=enemySpriteSets[e.kind];
+ if(!frames)return false;
+
+ const frame=Math.floor((e.walkPhase||0)/1.6)%4;
+ const record=frames[frame];
+ if(!record || !record.ready)return false;
+
+ const size=({normal:43,fast:37,armored:49,regen:45,boss:86})[e.kind]||43;
+
+ ctx.save();
+ ctx.translate(e.x,e.y);
+
+ // Keep characters upright and turn toward their path.
+ const route=routeFor(e);
+ const destination=route[e.next];
+ if(destination && destination.x<e.x-1){
+  ctx.scale(-1,1);
+ }
+
+ // Soft contact shadow.
+ ctx.fillStyle='rgba(0,0,0,.25)';
+ ctx.beginPath();
+ ctx.ellipse(0,2,size*.29,5,0,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.drawImage(
+  record.img,
+  -size/2,
+  -size+7,
+  size,
+  size
+ );
+
+ // Preserve damage and status indications.
+ if(e.flash>0){
+  ctx.globalAlpha=.28;
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();
+  ctx.arc(0,-size*.45,size*.35,0,Math.PI*2);
+  ctx.fill();
+  ctx.globalAlpha=1;
+ }
+
+ if(e.burnTime>0){
+  ctx.strokeStyle='#ff7c38';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(0,-12,15,0,Math.PI*2);
+  ctx.stroke();
+ }
+
+ if(e.slowTime>0){
+  ctx.strokeStyle='#a8efff';
+  ctx.lineWidth=2;
+  ctx.strokeRect(-17,-size+7,34,size-6);
+ }
+
+ ctx.restore();
+ return true;
+}
+
+loadGoblinSprites();
+
 function drawTowerSprite(t){
  const collection=towerSprites[t.type];
  if(!collection)return false;
@@ -780,6 +868,7 @@ if(selectedTower){ctx.beginPath();ctx.arc(selectedTower.x,selectedTower.y,effect
 for(const t of state.towers){if(drawTowerSprite(t)){drawTowerBanner(t);}else{drawFantasyTower(t);}}
 
 for(const e of state.enemies){
+ if(!drawEnemySprite(e)){
  ctx.save();ctx.translate(e.x,e.y);
  const scale=e.kind==='boss'?1.95:e.kind==='armored'?1.18:e.kind==='fast'?.83:1;
  ctx.scale(scale,scale);
@@ -797,7 +886,8 @@ for(const e of state.enemies){
  if(e.kind==='boss'){ctx.fillStyle='#e8b46b';ctx.fillRect(-11,-24,22,5);ctx.fillRect(-7,-30,5,7);ctx.fillRect(4,-30,5,7);ctx.fillStyle='#d9c8aa';ctx.fillRect(-12,2,24,6)}
  if(e.burnTime>0){ctx.strokeStyle='#ff7c38';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.stroke()}
  if(e.slowTime>0){ctx.strokeStyle='#a8efff';ctx.lineWidth=2;ctx.strokeRect(-13,-23,26,39)}
- ctx.restore();ctx.fillStyle='#201b19';ctx.fillRect(e.x-19,e.y-e.radius*(e.kind==='boss'?2:1)-14,38,5);ctx.fillStyle=e.kind==='boss'?'#f3b36c':'#9bdf76';ctx.fillRect(e.x-19,e.y-e.radius*(e.kind==='boss'?2:1)-14,38*Math.max(0,e.hp/e.maxHp),5);
+ ctx.restore();}
+ctx.fillStyle='#201b19';ctx.fillRect(e.x-19,e.y-e.radius*(e.kind==='boss'?2:1)-14,38,5);ctx.fillStyle=e.kind==='boss'?'#f3b36c':'#9bdf76';ctx.fillRect(e.x-19,e.y-e.radius*(e.kind==='boss'?2:1)-14,38*Math.max(0,e.hp/e.maxHp),5);
 }
 for(const r of cavalryRiders){ctx.save();ctx.translate(r.x,r.y);ctx.fillStyle='#d4b084';ctx.beginPath();ctx.ellipse(0,0,15,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f7e2ae';ctx.beginPath();ctx.arc(10,-4,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#415c79';ctx.fillRect(-6,-12,11,12);ctx.fillStyle='#f9d36d';ctx.fillRect(-2,-17,3,12);ctx.restore()}
 const boss=state.enemies.find(e=>e.kind==='boss'&&!e.dead);
